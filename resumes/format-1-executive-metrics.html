@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luis Calderon - Format 1: Executive Metrics-Driven</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.4;
+        }
+
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.5in;
+            background: white;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* FAANG-Style Header */
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #000;
+            margin-bottom: 20px;
+        }
+
+        .name {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .contact {
+            font-size: 10px;
+            color: #444;
+        }
+
+        /* Metrics Dashboard */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+
+        .metric-box {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .metric-number {
+            font-size: 22px;
+            font-weight: 700;
+            color: #000;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .metric-label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Experience - Impact First */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #000;
+        }
+
+        .job {
+            margin-bottom: 20px;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 3px;
+        }
+
+        .job-title {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .job-dates {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .company {
+            font-size: 11px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 8px;
+        }
+
+        /* Impact Metrics Boxes */
+        .impact-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .impact-card {
+            background: #f9f9f9;
+            padding: 8px;
+            border-left: 3px solid #000;
+            font-size: 10px;
+        }
+
+        .impact-stat {
+            font-weight: 700;
+            color: #000;
+            font-size: 14px;
+            display: block;
+        }
+
+        .achievements li {
+            font-size: 10px;
+            margin-bottom: 4px;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .achievements li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .skills-compact {
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background: #000;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .page { box-shadow: none; }
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #000;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">Print/PDF</button>
+
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="name">LUIS CALDERON</div>
+            <div class="tagline">Product Leader • PLG/Consumer/SMB • Data-Driven Growth • AI/ML Innovation</div>
+            <div class="contact">luis@calderon.com • 703.786.7899 • linkedin.com/in/luiscalderon • San Diego, CA (Remote/LA/SF)</div>
+        </div>
+
+        <!-- Key Metrics Dashboard -->
+        <div class="metrics-grid">
+            <div class="metric-box">
+                <span class="metric-number">$100M+</span>
+                <span class="metric-label">Business Lift (eBay)</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">$900M</span>
+                <span class="metric-label">P&L Managed</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">4</span>
+                <span class="metric-label">AI Products Shipped</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">10-15%</span>
+                <span class="metric-label">CAGR Delivered</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">4M+</span>
+                <span class="metric-label">Users Served</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">30%</span>
+                <span class="metric-label">Mobile Conv Lift</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">40%</span>
+                <span class="metric-label">Cost Reduction (AI)</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-number">+2%</span>
+                <span class="metric-label">Checkout Conv</span>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="section-title">Experience</div>
+
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">Principal Product Manager (Group PM) - AI/ML Products</div>
+                <div class="job-dates">2021-2024</div>
+            </div>
+            <div class="company">Intuit - TurboTax Self-Employed | Mountain View, CA</div>
+
+            <div class="impact-row">
+                <div class="impact-card">
+                    <span class="impact-stat">$900M</span>
+                    Business Unit P&L
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">4M+</span>
+                    Solopreneurs Served
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">10-15%</span>
+                    Annual CAGR
+                </div>
+            </div>
+
+            <ul class="achievements">
+                <li><strong>Shipped 4 AI/ML Products (Pre-ChatGPT):</strong> Expense Categorization AI (60%+ manual entry reduction), Deduction Finder ML with HITL training ($1,200+ avg refund increase), Audit Risk Predictor, Document Extraction AI (OCR for W-2s/1099s)</li>
+                <li><strong>Pure PLG Motion:</strong> Zero sales team, freemium model, self-service onboarding serving millions - delivered $100-150M annual growth</li>
+                <li><strong>Team Leadership:</strong> Managed 4 PMs, established metrics-driven experimentation framework across product org</li>
+                <li><strong>Data-Driven Execution:</strong> Cohort analysis, funnel optimization, A/B testing to identify friction and improve conversion</li>
+            </ul>
+        </div>
+
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">CEO - AI-Powered E-commerce Transformation</div>
+                <div class="job-dates">2018-Present</div>
+            </div>
+            <div class="company">SketchPop LLC | San Diego, CA</div>
+
+            <div class="impact-row">
+                <div class="impact-card">
+                    <span class="impact-stat">$3M</span>
+                    Annual Revenue
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">20%</span>
+                    EBITDA Margins
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">40%</span>
+                    AI Cost Savings
+                </div>
+            </div>
+
+            <ul class="achievements">
+                <li><strong>AI Operations:</strong> Deployed LLM chatbot (40% cost reduction, 4.8★ satisfaction), GPT-4/Claude for customer comms, AI demand forecasting (30% delay reduction)</li>
+                <li><strong>Product Innovation:</strong> Modern AI infrastructure, ML preference prediction, AI content generation for SEO/marketing</li>
+                <li><strong>Impact:</strong> 2x order volume with same team size through AI automation</li>
+            </ul>
+        </div>
+
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">Director of Product Management - Growth</div>
+                <div class="job-dates">2016-2017</div>
+            </div>
+            <div class="company">Ancestry | San Francisco Bay Area</div>
+
+            <div class="impact-row">
+                <div class="impact-card">
+                    <span class="impact-stat">$800M</span>
+                    Subscription Business
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">30%</span>
+                    Mobile Conv Lift
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">5%</span>
+                    Revenue Lift (Cart)
+                </div>
+            </div>
+
+            <ul class="achievements">
+                <li><strong>Conversion Wins:</strong> Abandon cart feature (5% revenue lift), mobile optimization (30% subscription lift), new shopping experiences</li>
+                <li>Led acquisition, conversion, and growth initiatives for consumer subscription business at scale</li>
+            </ul>
+        </div>
+
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">Product Leader - Payments & Customer Connection</div>
+                <div class="job-dates">2013-2015</div>
+            </div>
+            <div class="company">eBay Marketplaces | San Francisco Bay Area</div>
+
+            <div class="impact-row">
+                <div class="impact-card">
+                    <span class="impact-stat">+2%</span>
+                    Checkout Conversion
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">$100M+</span>
+                    Business Lift
+                </div>
+                <div class="impact-card">
+                    <span class="impact-stat">-33%</span>
+                    Defect Reduction
+                </div>
+            </div>
+
+            <ul class="achievements">
+                <li><strong>Conversion Optimization:</strong> Checkout optimization achieving +2% improvement = $100M+ lift at global marketplace scale</li>
+                <li><strong>Analytics Leadership:</strong> Managed team of 6+ analysts, A/B testing, strategic insights for payments/checkout decisions</li>
+            </ul>
+        </div>
+
+        <!-- Skills -->
+        <div class="section-title">Core Competencies</div>
+        <div class="skills-compact">
+            <span class="skill-tag">Product-Led Growth</span>
+            <span class="skill-tag">AI/ML Products</span>
+            <span class="skill-tag">Data-Driven Decision Making</span>
+            <span class="skill-tag">A/B Testing</span>
+            <span class="skill-tag">Conversion Optimization</span>
+            <span class="skill-tag">Consumer Product</span>
+            <span class="skill-tag">Team Leadership</span>
+            <span class="skill-tag">P&L Management</span>
+            <span class="skill-tag">LLMs (GPT-4/Claude)</span>
+            <span class="skill-tag">Freemium Models</span>
+            <span class="skill-tag">Funnel Optimization</span>
+            <span class="skill-tag">E-commerce</span>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <div class="section-title">Education</div>
+            <div style="font-size: 11px;"><strong>MBA</strong> - UC Berkeley Haas School of Business</div>
+            <div style="font-size: 11px;"><strong>BS Industrial & Systems Engineering</strong> - Virginia Tech</div>
+        </div>
+    </div>
+</body>
+</html>
