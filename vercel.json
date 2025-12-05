@@ -1,9 +1,12 @@
 {
-  "name": "luis-job-search",
   "version": 2,
   "builds": [
     {
-      "src": "job-search-dashboard.html",
+      "src": "**/*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.js",
       "use": "@vercel/static"
     }
   ],
@@ -11,6 +14,10 @@
     {
       "src": "/",
       "dest": "/job-search-dashboard.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
