@@ -270,29 +270,179 @@
                     </div>
                 </div>
 
-                <!-- Past Roles Compact -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="secondary-card p-6 rounded-xl group reveal-on-scroll relative overflow-hidden">
-                        <div class="flex justify-between items-baseline mb-2">
-                            <h4 class="text-xl font-heading font-medium text-black tracking-wide">GrowthAlchemyLab</h4>
-                            <span class="text-sm text-stone-500">2024-Pres</span>
+                <!-- Past Roles Expandable Stack -->
+                <div class="space-y-4">
+                    
+                    <!-- GrowthAlchemyLab -->
+                    <div class="secondary-card expandable p-6 rounded-xl group reveal-on-scroll relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                 <h4 class="text-xl font-heading font-medium text-black tracking-wide">Founder & Principal Consultant</h4>
+                                 <div class="flex items-center gap-2 mt-1">
+                                     <img src="https://logo.clearbit.com/growthalchemylab.com" class="w-4 h-4 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="GrowthAlchemy" onerror="this.style.display='none'">
+                                     <div class="text-stone-500 italic">GrowthAlchemyLab</div>
+                                 </div>
+                             </div>
+                             <div class="flex items-center gap-4">
+                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2024 - Present</span>
+                                 <i data-lucide="chevron-down" class="chevron-icon w-5 h-5 text-stone-400 group-hover:text-black transition-colors"></i>
+                             </div>
                         </div>
-                        <div class="flex items-center gap-2 mb-3">
-                             <img src="https://logo.clearbit.com/growthalchemylab.com" class="w-5 h-5 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="GrowthAlchemy" onerror="this.style.display='none'">
-                             <div class="text-sm text-stone-500 uppercase tracking-wider">Founder</div>
+                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2024 - Present</div>
+
+                        <div class="card-details">
+                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4">
+                                <p class="mb-4 italic">Founded AI/ML product consulting practice advising consumer, e-commerce, and PLG companies on AI strategy and implementation.</p>
+                                <ul class="space-y-2 text-base">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>AI Strategy:</strong> Advise consumer/PLG companies on AI product strategy, feature prioritization, and roadmap development.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Client Engagements:</strong> E-commerce AI chatbots (40%+ cost reduction), AI-driven user onboarding, and personalized recommendations.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Impact:</strong> Helping clients achieve 30-50% cost reduction through AI automation while maintaining customer satisfaction.</span></li>
+                                </ul>
+                            </div>
                         </div>
-                        <p class="text-lg text-stone-600">Advising on AI roadmap &amp; metrics.</p>
                     </div>
-                    <div class="secondary-card p-6 rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden">
-                        <div class="flex justify-between items-baseline mb-2">
-                            <h4 class="text-xl font-heading font-medium text-black tracking-wide">Ancestry</h4>
-                            <span class="text-sm text-stone-500">2016-2017</span>
+
+                    <!-- Epilogue Capital -->
+                    <div class="secondary-card expandable p-6 rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                 <h4 class="text-xl font-heading font-medium text-black tracking-wide">Managing Partner</h4>
+                                 <div class="flex items-center gap-2 mt-1">
+                                     <div class="text-stone-500 italic">Epilogue Capital</div>
+                                 </div>
+                             </div>
+                             <div class="flex items-center gap-4">
+                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2018 - Present</span>
+                                 <i data-lucide="chevron-down" class="chevron-icon w-5 h-5 text-stone-400 group-hover:text-black transition-colors"></i>
+                             </div>
                         </div>
-                        <div class="flex items-center gap-2 mb-3">
-                             <img src="https://logo.clearbit.com/ancestry.com" class="w-5 h-5 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Ancestry" onerror="this.style.display='none'">
-                             <div class="text-sm text-stone-500 uppercase tracking-wider">Director of Product</div>
+                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2018 - Present</div>
+
+                        <div class="card-details">
+                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4">
+                                <p class="mb-4 italic">Founded investment firm focused on acquiring and operating profitable consumer/SMB businesses.</p>
+                                <ul class="space-y-2 text-base">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Portfolio Mgmt:</strong> Acquired SketchPop (custom art e-commerce), scaled to $3M revenue with 20% margins.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Investment Thesis:</strong> Focus on consumer/SMB businesses with strong unit economics where product/AI can drive growth.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Operations:</strong> Implement data analytics, AI automation, and conversion optimization across portfolio.</span></li>
+                                </ul>
+                            </div>
                         </div>
-                        <p class="text-lg text-stone-600">Mobile Growth, 30% subscription lift.</p>
+                    </div>
+
+                    <!-- Doctor.com -->
+                    <div class="secondary-card expandable p-6 rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                 <h4 class="text-xl font-heading font-medium text-black tracking-wide">Director of Product Management</h4>
+                                 <div class="flex items-center gap-2 mt-1">
+                                     <div class="text-stone-500 italic">Doctor.com</div>
+                                 </div>
+                             </div>
+                             <div class="flex items-center gap-4">
+                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2017 - 2018</span>
+                                 <i data-lucide="chevron-down" class="chevron-icon w-5 h-5 text-stone-400 group-hover:text-black transition-colors"></i>
+                             </div>
+                        </div>
+                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2017 - 2018</div>
+
+                        <div class="card-details">
+                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4">
+                                <p class="mb-4 italic">Responsible for product analytics, publisher operations, and reporting platforms serving healthcare providers.</p>
+                                <ul class="space-y-2 text-base">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Engagement:</strong> Launched personalized reporting platform increasing engagement 15%.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Analytics:</strong> Developed core analytics metrics, dashboards, and product OKRs.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Integration:</strong> Spearheaded enterprise-wide project integrating provider data with partners.</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ancestry -->
+                    <div class="secondary-card expandable p-6 rounded-xl group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                 <h4 class="text-xl font-heading font-medium text-black tracking-wide">Director of Product - Growth</h4>
+                                 <div class="flex items-center gap-2 mt-1">
+                                     <img src="https://logo.clearbit.com/ancestry.com" class="w-4 h-4 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Ancestry" onerror="this.style.display='none'">
+                                     <div class="text-stone-500 italic">Ancestry</div>
+                                 </div>
+                             </div>
+                             <div class="flex items-center gap-4">
+                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2016 - 2017</span>
+                                 <i data-lucide="chevron-down" class="chevron-icon w-5 h-5 text-stone-400 group-hover:text-black transition-colors"></i>
+                             </div>
+                        </div>
+                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2016 - 2017</div>
+
+                        <div class="card-details">
+                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4">
+                                <p class="mb-4 italic">Led acquisition, conversion, and growth initiatives for $800M subscription business.</p>
+                                <ul class="space-y-2 text-base">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Mobile Growth:</strong> Led mobile conversion initiative achieving 30% lift in app subscriptions.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Revenue Lift:</strong> Rolled out abandon cart campaigns resulting in 5% revenue lift.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Optimization:</strong> Designed new shopping experiences improving top-of-funnel conversion.</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tile -->
+                    <div class="secondary-card expandable p-6 rounded-xl group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                 <h4 class="text-xl font-heading font-medium text-black tracking-wide">Growth Product Leader</h4>
+                                 <div class="flex items-center gap-2 mt-1">
+                                     <img src="https://logo.clearbit.com/tile.com" class="w-4 h-4 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Tile" onerror="this.style.display='none'">
+                                     <div class="text-stone-500 italic">Tile</div>
+                                 </div>
+                             </div>
+                             <div class="flex items-center gap-4">
+                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2015 - 2016</span>
+                                 <i data-lucide="chevron-down" class="chevron-icon w-5 h-5 text-stone-400 group-hover:text-black transition-colors"></i>
+                             </div>
+                        </div>
+                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2015 - 2016</div>
+
+                        <div class="card-details">
+                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4">
+                                <p class="mb-4 italic">Defined and launched hardware-as-a-service subscription/renewal program.</p>
+                                <ul class="space-y-2 text-base">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Strategy:</strong> Developed business case and financial model for subscription launch.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Execution:</strong> Defined market requirements and managed creative for product collateral.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Testing:</strong> Conducted extensive A/B testing to optimize conversion.</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- eBay -->
+                    <div class="secondary-card expandable p-6 rounded-xl group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                        <div class="flex justify-between items-center">
+                             <div>
+                                 <h4 class="text-xl font-heading font-medium text-black tracking-wide">Product Leader - Payments</h4>
+                                 <div class="flex items-center gap-2 mt-1">
+                                     <img src="https://logo.clearbit.com/ebay.com" class="w-4 h-4 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="eBay" onerror="this.style.display='none'">
+                                     <div class="text-stone-500 italic">eBay Marketplaces</div>
+                                 </div>
+                             </div>
+                             <div class="flex items-center gap-4">
+                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2013 - 2015</span>
+                                 <i data-lucide="chevron-down" class="chevron-icon w-5 h-5 text-stone-400 group-hover:text-black transition-colors"></i>
+                             </div>
+                        </div>
+                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2013 - 2015</div>
+
+                        <div class="card-details">
+                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4">
+                                <p class="mb-4 italic">Product leader for Payments & Customer Connection (Checkout, Cart, Registration) at scale.</p>
+                                <ul class="space-y-2 text-base">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>$100M+ Lift:</strong> Led checkout optimization achieving +2% conversion improvement.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Analytics:</strong> Led global payments analytics team providing strategic insights.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-4 h-4 text-stone-400 mt-1 shrink-0"></i><span><strong>Operations:</strong> Reduced checkout defects by 33% through quality processes.</span></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
