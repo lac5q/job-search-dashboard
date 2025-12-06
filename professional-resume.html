@@ -49,14 +49,14 @@
             background-color: #ffffff; 
             border: 1px solid #e7e5e4; /* stone-200 */
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+            padding: 3.5rem; /* Increased padding */
         }
 
         .secondary-card {
             background-color: #ffffff;
             border: 1px solid #e7e5e4; /* stone-200 */
             transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
-            /* We don't want the hover transform to conflict with the reveal transform logic too much, 
-               but since reveal removes the transform, it's fine. */
+            padding: 2.5rem; /* Increased padding */
         }
         
         .secondary-card:hover {
@@ -112,33 +112,63 @@
             transform: rotate(180deg);
         }
 
-        /* Tertiary Card (Early Career) */
+        /* Tertiary Card (Early Career) - NOW MATCHING SECONDARY COLOR */
         .tertiary-card {
-            background-color: #fafaf9; /* stone-50 */
-            border: 1px solid transparent;
-            border-radius: 0.75rem; /* rounded-xl */
-            padding: 1.25rem 1.5rem;
+            background-color: #ffffff; /* Match secondary */
+            border: 1px solid #e7e5e4; /* Match secondary */
+            border-radius: 0.75rem;
+            padding: 1.5rem 2rem; /* Slightly more compact than secondary but spacious */
             cursor: pointer;
             transition: all 0.2s ease;
+            margin-bottom: 1rem;
         }
         .tertiary-card:hover {
-            background-color: #ffffff;
-            border-color: #e7e5e4; /* stone-200 */
+            border-color: #a8a29e;
             transform: translateX(4px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         .tertiary-card.expanded {
-            background-color: #ffffff;
-            border-color: #e7e5e4;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin: 1rem 0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .tertiary-card h4 {
-            font-size: 1.125rem; /* text-lg */
+            font-size: 1.125rem;
             font-weight: 600;
-            color: #57534e; /* stone-600 */
+            color: #1c1917; /* Darker text */
         }
-        .tertiary-card .text-stone-500 {
-             font-size: 0.875rem; /* text-sm */
+
+        /* Early Career Toggle Button */
+        .early-career-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem;
+            background-color: transparent;
+            border: 1px dashed #d6d3d1;
+            border-radius: 0.75rem;
+            color: #78716c;
+            font-family: 'PT Serif', serif;
+            font-size: 1.125rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+        .early-career-toggle:hover {
+            border-color: #a8a29e;
+            background-color: #fafaf9;
+            color: #44403c;
+        }
+        .early-career-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+            opacity: 0;
+        }
+        .early-career-list.open {
+            max-height: 5000px; /* Allow enough height */
+            opacity: 1;
+            margin-top: 2rem;
         }
 
     </style>
@@ -299,345 +329,306 @@
                     </div>
                 </div>
 
-                <!-- Past Roles Expandable Stack -->
-                <div class="space-y-4">
+                <!-- Past Roles -->
+                <div class="space-y-6">
                     
                     <!-- GrowthAlchemyLab -->
-                    <div class="tertiary-card expandable group reveal-on-scroll relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                    <div class="secondary-card expandable p-8 rounded-xl group reveal-on-scroll relative overflow-hidden" onclick="this.classList.toggle('expanded')">
                         <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="microscope" class="w-4 h-4"></i>
+                             <div class="flex items-center gap-4">
+                                 <div class="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center shrink-0 text-stone-500 border border-stone-100">
+                                     <i data-lucide="microscope" class="w-5 h-5"></i>
                                  </div>
                                  <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Founder & Principal Consultant</h4>
-                                     <div class="text-stone-400 text-sm">GrowthAlchemyLab &bull; 2024 - Present</div>
+                                     <h4 class="text-xl font-heading font-medium text-black tracking-wide">Founder & Principal Consultant</h4>
+                                     <div class="text-stone-500 text-base mt-0.5">GrowthAlchemyLab &bull; 2024 - Present</div>
                                  </div>
                              </div>
-                             <div class="flex items-center gap-4">
-                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2024 - Present</span>
-                                 <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                             </div>
+                             <i data-lucide="chevron-down" class="chevron-icon w-6 h-6 text-stone-400 group-hover:text-black transition-colors"></i>
                         </div>
-                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2024 - Present</div>
 
                         <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Founded AI/ML product consulting practice advising consumer, e-commerce, and PLG companies on AI strategy and implementation.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>AI Strategy:</strong> Advise consumer/PLG companies on AI product strategy, feature prioritization, and roadmap development.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Client Engagements:</strong> E-commerce AI chatbots (40%+ cost reduction), AI-driven user onboarding, and personalized recommendations.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Impact:</strong> Helping clients achieve 30-50% cost reduction through AI automation while maintaining customer satisfaction.</span></li>
+                            <div class="pt-6 text-stone-600 border-t border-stone-100 mt-6">
+                                <p class="mb-4 italic text-lg">Founded AI/ML product consulting practice advising consumer, e-commerce, and PLG companies on AI strategy and implementation.</p>
+                                <ul class="space-y-3 text-lg">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>AI Strategy:</strong> Advise consumer/PLG companies on AI product strategy, feature prioritization, and roadmap development.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Client Engagements:</strong> E-commerce AI chatbots (40%+ cost reduction), AI-driven user onboarding, and personalized recommendations.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Impact:</strong> Helping clients achieve 30-50% cost reduction through AI automation while maintaining customer satisfaction.</span></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
                     <!-- Epilogue Capital -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-100 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                    <div class="secondary-card expandable p-8 rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
                         <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="banknote" class="w-4 h-4"></i>
+                             <div class="flex items-center gap-4">
+                                 <div class="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center shrink-0 text-stone-500 border border-stone-100">
+                                     <i data-lucide="banknote" class="w-5 h-5"></i>
                                  </div>
                                  <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Managing Partner</h4>
-                                     <div class="text-stone-400 text-sm">Epilogue Capital &bull; 2018 - Present</div>
+                                     <h4 class="text-xl font-heading font-medium text-black tracking-wide">Managing Partner</h4>
+                                     <div class="text-stone-500 text-base mt-0.5">Epilogue Capital &bull; 2018 - Present</div>
                                  </div>
                              </div>
-                             <div class="flex items-center gap-4">
-                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2018 - Present</span>
-                                 <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                             </div>
+                             <i data-lucide="chevron-down" class="chevron-icon w-6 h-6 text-stone-400 group-hover:text-black transition-colors"></i>
                         </div>
-                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2018 - Present</div>
 
                         <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Founded investment firm focused on acquiring and operating profitable consumer/SMB businesses.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Portfolio Mgmt:</strong> Acquired SketchPop (custom art e-commerce), scaled to $3M revenue with 20% margins.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Investment Thesis:</strong> Focus on consumer/SMB businesses with strong unit economics where product/AI can drive growth.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Operations:</strong> Implement data analytics, AI automation, and conversion optimization across portfolio.</span></li>
+                            <div class="pt-6 text-stone-600 border-t border-stone-100 mt-6">
+                                <p class="mb-4 italic text-lg">Founded investment firm focused on acquiring and operating profitable consumer/SMB businesses.</p>
+                                <ul class="space-y-3 text-lg">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Portfolio Mgmt:</strong> Acquired SketchPop (custom art e-commerce), scaled to $3M revenue with 20% margins.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Investment Thesis:</strong> Focus on consumer/SMB businesses with strong unit economics where product/AI can drive growth.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Operations:</strong> Implement data analytics, AI automation, and conversion optimization across portfolio.</span></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
                     <!-- Doctor.com -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-100 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                    <div class="secondary-card expandable p-8 rounded-xl group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
                         <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="heart-pulse" class="w-4 h-4"></i>
+                             <div class="flex items-center gap-4">
+                                 <div class="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center shrink-0 text-stone-500 border border-stone-100">
+                                     <i data-lucide="heart-pulse" class="w-5 h-5"></i>
                                  </div>
                                  <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Director of Product Management</h4>
-                                     <div class="text-stone-400 text-sm">Doctor.com &bull; 2017 - 2018</div>
+                                     <h4 class="text-xl font-heading font-medium text-black tracking-wide">Director of Product Management</h4>
+                                     <div class="text-stone-500 text-base mt-0.5">Doctor.com &bull; 2017 - 2018</div>
                                  </div>
                              </div>
-                             <div class="flex items-center gap-4">
-                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2017 - 2018</span>
-                                 <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                             </div>
+                             <i data-lucide="chevron-down" class="chevron-icon w-6 h-6 text-stone-400 group-hover:text-black transition-colors"></i>
                         </div>
-                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2017 - 2018</div>
 
                         <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Responsible for product analytics, publisher operations, and reporting platforms serving healthcare providers.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Engagement:</strong> Launched personalized reporting platform increasing engagement 15%.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Analytics:</strong> Developed core analytics metrics, dashboards, and product OKRs.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Integration:</strong> Spearheaded enterprise-wide project integrating provider data with partners.</span></li>
+                            <div class="pt-6 text-stone-600 border-t border-stone-100 mt-6">
+                                <p class="mb-4 italic text-lg">Responsible for product analytics, publisher operations, and reporting platforms serving healthcare providers.</p>
+                                <ul class="space-y-3 text-lg">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Engagement:</strong> Launched personalized reporting platform increasing engagement 15%.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Analytics:</strong> Developed core analytics metrics, dashboards, and product OKRs.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Integration:</strong> Spearheaded enterprise-wide project integrating provider data with partners.</span></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
                     <!-- Ancestry -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                    <div class="secondary-card expandable p-8 rounded-xl group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
                         <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="gem" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Director of Product - Growth</h4>
-                                     <div class="text-stone-400 text-sm">Ancestry &bull; 2016 - 2017</div>
-                                 </div>
-                             </div>
                              <div class="flex items-center gap-4">
-                                 <span class="text-sm text-stone-400 uppercase tracking-wider hidden md:block">2016 - 2017</span>
-                                 <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                             </div>
-                        </div>
-                        <div class="md:hidden text-sm text-stone-400 uppercase tracking-wider mt-2">2016 - 2017</div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Led acquisition, conversion, and growth initiatives for $800M subscription business.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Mobile Growth:</strong> Led mobile conversion initiative achieving 30% lift in app subscriptions.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Revenue Lift:</strong> Rolled out abandon cart campaigns resulting in 5% revenue lift.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Optimization:</strong> Designed new shopping experiences improving top-of-funnel conversion.</span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Early Career Section Header -->
-                    <div class="pt-8 pb-2 flex items-center gap-4 reveal-on-scroll">
-                         <div class="h-px bg-stone-200 flex-1"></div>
-                         <span class="text-xs font-bold text-stone-400 uppercase tracking-widest">Early Career</span>
-                         <div class="h-px bg-stone-200 flex-1"></div>
-                    </div>
-
-                    <!-- Tile -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="grid" class="w-4 h-4"></i>
+                                 <div class="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center shrink-0 text-stone-500 border border-stone-100">
+                                     <i data-lucide="gem" class="w-5 h-5"></i>
                                  </div>
                                  <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Growth Product Leader</h4>
-                                     <div class="text-stone-400 text-sm">Tile &bull; 2015 - 2016</div>
+                                     <h4 class="text-xl font-heading font-medium text-black tracking-wide">Director of Product - Growth</h4>
+                                     <div class="text-stone-500 text-base mt-0.5">Ancestry &bull; 2016 - 2017</div>
                                  </div>
                              </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                             <i data-lucide="chevron-down" class="chevron-icon w-6 h-6 text-stone-400 group-hover:text-black transition-colors"></i>
                         </div>
 
                         <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Defined and launched hardware-as-a-service subscription/renewal program.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Strategy:</strong> Developed business case and financial model for subscription launch.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Execution:</strong> Defined market requirements and managed creative for product collateral.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Testing:</strong> Conducted extensive A/B testing to optimize conversion.</span></li>
+                            <div class="pt-6 text-stone-600 border-t border-stone-100 mt-6">
+                                <p class="mb-4 italic text-lg">Led acquisition, conversion, and growth initiatives for $800M subscription business.</p>
+                                <ul class="space-y-3 text-lg">
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Mobile Growth:</strong> Led mobile conversion initiative achieving 30% lift in app subscriptions.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Revenue Lift:</strong> Rolled out abandon cart campaigns resulting in 5% revenue lift.</span></li>
+                                    <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-stone-400 mt-1 shrink-0"></i><span><strong>Optimization:</strong> Designed new shopping experiences improving top-of-funnel conversion.</span></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- eBay -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Product Leader - Payments</h4>
-                                     <div class="text-stone-400 text-sm">eBay Marketplaces &bull; 2013 - 2015</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
+                <!-- Early Career Section -->
+                <div>
+                    <button class="early-career-toggle" onclick="toggleEarlyCareer()">
+                        <span>Show Early Career History</span>
+                        <i data-lucide="chevron-down" id="early-career-icon" class="transition-transform duration-300"></i>
+                    </button>
 
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Product leader for Payments & Customer Connection (Checkout, Cart, Registration) at scale.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>$100M+ Lift:</strong> Led checkout optimization achieving +2% conversion improvement.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Analytics:</strong> Led global payments analytics team providing strategic insights.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Operations:</strong> Reduced checkout defects by 33% through quality processes.</span></li>
-                                </ul>
+                    <div id="early-career-list" class="early-career-list space-y-4">
+                        
+                        <!-- Tile -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="grid" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Growth Product Leader</h4>
+                                        <div class="text-stone-500 text-sm">Tile &bull; 2015 - 2016</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Defined and launched hardware-as-a-service subscription/renewal program.</p>
+                                    <ul class="space-y-2">
+                                        <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Strategy:</strong> Developed business case and financial model.</span></li>
+                                        <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Execution:</strong> Managed creative for product collateral.</span></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Accenture -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="briefcase" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Management Consultant</h4>
-                                     <div class="text-stone-400 text-sm">Accenture &bull; 2010 - 2012</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Strategy consultant focused on Marketing, Sales, and CRM transformation for Tech & Media clients.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Cost Efficiency:</strong> Designed marketing automation solution saving $50-100M in operational costs.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Process Improvement:</strong> Led worldwide marketing process review driving 10% efficiency gain.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>CRM Strategy:</strong> Led roadmap for Partner Lead Management CRM implementation.</span></li>
-                                </ul>
+                        <!-- eBay -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Product Leader - Payments</h4>
+                                        <div class="text-stone-500 text-sm">eBay &bull; 2013 - 2015</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Product leader for Payments & Customer Connection at scale.</p>
+                                    <ul class="space-y-2">
+                                        <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>$100M+ Lift:</strong> Led checkout optimization initiatives.</span></li>
+                                        <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Analytics:</strong> Led global payments analytics team.</span></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Bebarang -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="rocket" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Co-Founder & Director of Product</h4>
-                                     <div class="text-stone-400 text-sm">Bebarang.com &bull; 2009 - 2011</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <p class="mb-3 italic">Co-founded innovative online e-commerce exchange platform.</p>
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>0 to 1:</strong> Led conceptualization and launch of UI and back-end product platform.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Growth:</strong> Secured seed funding and grew to 20k+ monthly visitors via ROI-driven campaigns.</span></li>
-                                </ul>
+                        <!-- Accenture -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="briefcase" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Management Consultant</h4>
+                                        <div class="text-stone-500 text-sm">Accenture &bull; 2010 - 2012</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Strategy consultant focused on Marketing, Sales, and CRM.</p>
+                                    <ul class="space-y-2">
+                                        <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Efficiency:</strong> Designed automation saving $50-100M.</span></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Irdeto -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="monitor" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Product Manager</h4>
-                                     <div class="text-stone-400 text-sm">Irdeto &bull; 2006 - 2008</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Revenue Generation:</strong> Led implementation of billing support systems generating over $10M.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Product Lifecycle:</strong> Guided key modules from use cases through to development and launch.</span></li>
-                                </ul>
+                        <!-- Bebarang -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="rocket" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Co-Founder & Product Dir.</h4>
+                                        <div class="text-stone-500 text-sm">Bebarang &bull; 2009 - 2011</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Co-founded innovative online e-commerce exchange platform.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- MedImpact -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="activity" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Product Manager</h4>
-                                     <div class="text-stone-400 text-sm">MedImpact &bull; 2005 - 2006</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Impact:</strong> Designed billing software solution increasing revenues by $75M in first year.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Execution:</strong> Managed multiple cross-functional teams to define MRDs/PRDs and ship.</span></li>
-                                </ul>
+                        <!-- Irdeto -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="monitor" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Product Manager</h4>
+                                        <div class="text-stone-500 text-sm">Irdeto &bull; 2006 - 2008</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Led implementation of billing support systems.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Booz Allen Hamilton -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="shield" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Senior Consultant</h4>
-                                     <div class="text-stone-400 text-sm">Booz Allen Hamilton &bull; 2003 - 2005</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Client Success:</strong> Led requirements/design for complex IRS system; secured $15M contract extension.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Project Mgmt:</strong> Managed resources (6-20 reports) for timely completion of $100M project.</span></li>
-                                </ul>
+                        <!-- MedImpact -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="activity" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Product Manager</h4>
+                                        <div class="text-stone-500 text-sm">MedImpact &bull; 2005 - 2006</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Designed billing software solution increasing revenues.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Capgemini -->
-                    <div class="tertiary-card expandable group reveal-on-scroll delay-200 relative overflow-hidden" onclick="this.classList.toggle('expanded')">
-                        <div class="flex justify-between items-center">
-                             <div class="flex items-center gap-3">
-                                 <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
-                                     <i data-lucide="code" class="w-4 h-4"></i>
-                                 </div>
-                                 <div>
-                                     <h4 class="text-lg font-heading font-medium text-stone-600">Senior Consultant</h4>
-                                     <div class="text-stone-400 text-sm">Capgemini &bull; 2000 - 2003</div>
-                                 </div>
-                             </div>
-                             <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
-                        </div>
-
-                        <div class="card-details">
-                            <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
-                                <ul class="space-y-2">
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Telecom Systems:</strong> Analyzed requirements and tested $1B billing system for Nextel.</span></li>
-                                    <li class="flex gap-3"><i data-lucide="check" class="w-3 h-3 text-stone-400 mt-1 shrink-0"></i><span><strong>Launch Lead:</strong> Developed certification plans for go-live; led test teams.</span></li>
-                                </ul>
+                         <!-- Booz Allen -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="shield" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Senior Consultant</h4>
+                                        <div class="text-stone-500 text-sm">Booz Allen &bull; 2003 - 2005</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Led requirements/design for complex IRS system.</p>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Capgemini -->
+                        <div class="tertiary-card expandable group relative overflow-hidden" onclick="this.classList.toggle('expanded')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-400">
+                                        <i data-lucide="code" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-heading font-medium text-stone-700">Senior Consultant</h4>
+                                        <div class="text-stone-500 text-sm">Capgemini &bull; 2000 - 2003</div>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-down" class="chevron-icon w-4 h-4 text-stone-300 group-hover:text-stone-500 transition-colors"></i>
+                            </div>
+                            <div class="card-details">
+                                <div class="pt-4 text-stone-600 border-t border-stone-100 mt-4 text-sm">
+                                    <p class="mb-3 italic">Analyzed requirements and tested $1B billing system.</p>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -697,6 +688,14 @@
 
     <script>
         lucide.createIcons();
+
+        // Toggle Early Career Section
+        function toggleEarlyCareer() {
+            const list = document.getElementById('early-career-list');
+            const icon = document.getElementById('early-career-icon');
+            list.classList.toggle('open');
+            icon.classList.toggle('rotate-180');
+        }
 
         // Intersection Observer for "Unveiling" Animations
         document.addEventListener("DOMContentLoaded", function() {
