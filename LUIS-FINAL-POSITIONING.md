@@ -142,7 +142,7 @@ Key Achievements:
   - Redesigned e-commerce experience improving conversion
   - Built approval workflow system streamlining operations
   - Modernized backend tech stack for scalability
-• Profitability: Achieved and maintained 20% margins in competitive consumer market
+• Profitability: Achieved 20% EBITDA margins by reducing overhead with strategic changes and AI automation
 • Operational Leadership: Managed all functions (product, tech, marketing, operations, finance)
 • Transition Planning: Developed succession plan for operational handoff
 ```

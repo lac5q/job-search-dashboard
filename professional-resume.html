@@ -3,68 +3,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Luis Calderon - Product Leader</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide @latest"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <!-- Importing PT Serif (Headings) and Instrument Serif (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=PT+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
     
     <style>
         /* Typography Mapping */
         body { font-family: 'Instrument Serif', serif; }
         h1, h2, h3, h4, h5, .font-heading { font-family: 'PT Serif', serif; }
         
-        /* Animation Utilities: 3D Sequence with Linear Easing */
-        .animate-sequence > * {
-            opacity: 0;
-            transform: perspective(1000px) rotateX(15deg) translateY(20px) scale(0.98);
-            animation: threeDFadeIn 0.8s linear forwards; /* Linear easing, Normal Direction */
-            animation-iteration-count: 1; /* Repeat Once */
-        }
-
-        /* Staggered Delays starting at 0.1s */
-        .animate-sequence > *:nth-child(1) { animation-delay: 0.1s; }
-        .animate-sequence > *:nth-child(2) { animation-delay: 0.2s; }
-        .animate-sequence > *:nth-child(3) { animation-delay: 0.3s; }
-        .animate-sequence > *:nth-child(4) { animation-delay: 0.4s; }
-        .animate-sequence > *:nth-child(5) { animation-delay: 0.5s; }
-
-        @keyframes threeDFadeIn {
-            to { 
-                opacity: 1; 
-                transform: perspective(1000px) rotateX(0) translateY(0) scale(1); 
-            }
-        }
-
-        /* Hero Card Style - Flat, Light Mode, Stone Colors, Shadow-LG */
-        .hero-card {
-            background-color: #ffffff; 
-            border: 1px solid #e7e5e4; /* stone-200 */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
-        }
-
-        /* Secondary cards - Light Mode */
-        .secondary-card {
-            background-color: #ffffff;
-            border: 1px solid #e7e5e4; /* stone-200 */
-            transition: all 0.3s linear;
-        }
-        .secondary-card:hover {
-            border-color: #a8a29e; /* stone-400 */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transform: translateY(-2px);
-        }
-
         /* Custom Scrollbar Stone */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f5f5f4; }
         ::-webkit-scrollbar-thumb { background-color: #d6d3d1; border-radius: 20px; }
         ::-webkit-scrollbar-thumb:hover { background-color: #a8a29e; }
+
+        /* --- UNVEILING ANIMATIONS --- */
+
+        /* Base class for elements to be revealed */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px) scale(0.96) rotateX(10deg);
+            transform-origin: center top;
+            transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1), 
+                        transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+            will-change: opacity, transform;
+            perspective: 1000px;
+        }
+
+        /* The visible state */
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1) rotateX(0);
+        }
+
+        /* Stagger delays for grid items (handled via JS or CSS helper classes) */
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        /* Card Styles */
+        .hero-card {
+            background-color: #ffffff; 
+            border: 1px solid #e7e5e4; /* stone-200 */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+        }
+
+        .secondary-card {
+            background-color: #ffffff;
+            border: 1px solid #e7e5e4; /* stone-200 */
+            transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+            /* We don't want the hover transform to conflict with the reveal transform logic too much, 
+               but since reveal removes the transform, it's fine. */
+        }
+        
+        .secondary-card:hover {
+            border-color: #a8a29e; /* stone-400 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px) !important; /* Force lift on hover */
+        }
+
+        /* Card "Shine" Effect on Unveil */
+        .secondary-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .secondary-card.is-visible::after {
+            animation: shine 1s ease-out 0.6s forwards;
+        }
+
+        @keyframes shine {
+            100% { left: 150%; }
+        }
+
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 antialiased overflow-x-hidden selection:bg-black selection:text-white">
 
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-stone-100/90 backdrop-blur-md border-b border-stone-200">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-stone-100/90 backdrop-blur-md border-b border-stone-200 reveal-on-scroll">
         <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="text-2xl font-heading font-semibold tracking-wide text-black">LC.</div>
             <div class="hidden md:flex items-center gap-8 text-lg font-normal text-stone-500">
@@ -82,8 +109,8 @@
     <main class="relative z-10 pt-32 pb-24 px-4 md:px-6">
         <div class="max-w-3xl mx-auto space-y-12">
 
-            <!-- Hero Section: Card Layout / Centered / Light Mode / PT Serif & Instrument Serif -->
-            <section id="about" class="hero-card p-12 md:p-16 animate-sequence flex flex-col items-center text-center gap-8 rounded-xl">
+            <!-- Hero Section -->
+            <section id="about" class="hero-card p-12 md:p-16 reveal-on-scroll flex flex-col items-center text-center gap-8 rounded-xl overflow-hidden relative">
                 
                 <!-- 1. Image -->
                 <div class="relative w-32 h-32 md:w-40 md:h-40 shrink-0">
@@ -92,19 +119,17 @@
 
                 <!-- 2. Content Stack -->
                 <div class="space-y-6 max-w-xl">
-                    <!-- Heading: PT Serif, 48-64px, Semibold, Wide spacing -->
                     <h1 class="text-5xl md:text-6xl font-heading font-semibold text-black tracking-wider leading-[1.1]">
                         Luis Calderon
                     </h1>
                     
-                    <!-- Subheading: PT Serif, 28-32px (text-3xl), Semibold -->
                     <h2 class="text-2xl md:text-3xl font-heading font-semibold text-stone-700 tracking-wide leading-snug">
                         Product Leader | PLG Expert | AI Innovation
                     </h2>
 
                     <!-- Socials -->
                     <div class="flex justify-center gap-4 pt-2">
-                        <a href="mailto:luis @calderon.com" class="p-2 text-stone-500 hover:text-black transition-colors border border-transparent hover:border-stone-200 rounded-full">
+                        <a href="mailto:luis@calderon.com" class="p-2 text-stone-500 hover:text-black transition-colors border border-transparent hover:border-stone-200 rounded-full">
                             <i data-lucide="mail" class="w-6 h-6" stroke-width="1.5"></i>
                         </a>
                         <a href="#" class="p-2 text-stone-500 hover:text-black transition-colors border border-transparent hover:border-stone-200 rounded-full">
@@ -116,7 +141,7 @@
                     </div>
                 </div>
 
-                <!-- 3. Bio: Instrument Serif, 16-18px (text-lg) -->
+                <!-- 3. Bio -->
                 <div class="pt-8 border-t border-stone-100 w-full">
                     <p class="text-lg md:text-xl leading-relaxed text-stone-600 font-normal">
                         <span class="text-black italic">Data-driven product leader</span> with proven track record across <span class="text-black italic">$900M TurboTax, $800M Ancestry, and global eBay marketplace</span>. Currently CEO of $3M e-commerce business. Deep expertise in <span class="text-black italic">Product-Led Growth, AI/ML products, and conversion optimization</span>.
@@ -125,35 +150,35 @@
             </section>
 
             <!-- Metrics Grid -->
-            <section class="grid grid-cols-2 gap-4 animate-sequence" style="animation-delay: 0.2s;">
-                <div class="secondary-card p-6 text-center rounded-xl group">
-                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">$100M+</div>
+            <section class="grid grid-cols-2 gap-4">
+                <div class="secondary-card p-6 text-center rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden">
+                    <div class="text-4xl font-heading font-medium text-black mb-2">$100M+</div>
                     <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">Business Lift</div>
                 </div>
-                <div class="secondary-card p-6 text-center rounded-xl group">
-                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">4+</div>
+                <div class="secondary-card p-6 text-center rounded-xl group reveal-on-scroll delay-200 relative overflow-hidden">
+                    <div class="text-4xl font-heading font-medium text-black mb-2">4+</div>
                     <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">AI Products</div>
                 </div>
-                <div class="secondary-card p-6 text-center rounded-xl group">
-                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">40%</div>
+                <div class="secondary-card p-6 text-center rounded-xl group reveal-on-scroll delay-300 relative overflow-hidden">
+                    <div class="text-4xl font-heading font-medium text-black mb-2">40%</div>
                     <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">Cost Reduction</div>
                 </div>
-                <div class="secondary-card p-6 text-center rounded-xl group">
-                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">30%</div>
+                <div class="secondary-card p-6 text-center rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden">
+                    <div class="text-4xl font-heading font-medium text-black mb-2">30%</div>
                     <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">Mobile Lift</div>
                 </div>
             </section>
 
             <!-- Experience Section -->
-            <section id="experience" class="space-y-8 animate-sequence" style="animation-delay: 0.4s;">
-                <div class="flex items-center justify-center gap-4 py-6">
+            <section id="experience" class="space-y-8">
+                <div class="flex items-center justify-center gap-4 py-6 reveal-on-scroll">
                     <div class="h-px bg-stone-300 w-16"></div>
                     <h3 class="text-2xl font-heading font-semibold text-black tracking-wide">Professional Experience</h3>
                     <div class="h-px bg-stone-300 w-16"></div>
                 </div>
 
                 <!-- Job Card 1 -->
-                <div class="secondary-card p-8 rounded-xl group">
+                <div class="secondary-card p-8 rounded-xl group reveal-on-scroll relative overflow-hidden">
                     <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4 gap-2 border-b border-stone-100 pb-4">
                         <div>
                             <h4 class="text-2xl font-heading font-medium text-black tracking-wide">Principal Product Manager - AI/ML</h4>
@@ -178,7 +203,7 @@
                 </div>
 
                 <!-- Job Card 2 -->
-                <div class="secondary-card p-8 rounded-xl group">
+                <div class="secondary-card p-8 rounded-xl group reveal-on-scroll relative overflow-hidden">
                     <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4 gap-2 border-b border-stone-100 pb-4">
                         <div>
                             <h4 class="text-2xl font-heading font-medium text-black tracking-wide">CEO - AI Transformation</h4>
@@ -203,7 +228,7 @@
 
                 <!-- Past Roles Compact -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="secondary-card p-6 rounded-xl group">
+                    <div class="secondary-card p-6 rounded-xl group reveal-on-scroll relative overflow-hidden">
                         <div class="flex justify-between items-baseline mb-2">
                             <h4 class="text-xl font-heading font-medium text-black tracking-wide">GrowthAlchemyLab</h4>
                             <span class="text-sm text-stone-500">2024-Pres</span>
@@ -214,7 +239,7 @@
                         </div>
                         <p class="text-lg text-stone-600">Advising on AI roadmap &amp; metrics.</p>
                     </div>
-                    <div class="secondary-card p-6 rounded-xl group">
+                    <div class="secondary-card p-6 rounded-xl group reveal-on-scroll delay-100 relative overflow-hidden">
                         <div class="flex justify-between items-baseline mb-2">
                             <h4 class="text-xl font-heading font-medium text-black tracking-wide">Ancestry</h4>
                             <span class="text-sm text-stone-500">2016-2017</span>
@@ -229,33 +254,33 @@
             </section>
 
             <!-- Competencies -->
-            <section id="competencies" class="space-y-8 animate-sequence" style="animation-delay: 0.6s;">
-                 <div class="flex items-center justify-center gap-4 py-6">
+            <section id="competencies" class="space-y-8">
+                 <div class="flex items-center justify-center gap-4 py-6 reveal-on-scroll">
                     <div class="h-px bg-stone-300 w-16"></div>
                     <h3 class="text-2xl font-heading font-semibold text-black tracking-wide">Competencies</h3>
                     <div class="h-px bg-stone-300 w-16"></div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div class="secondary-card p-6 rounded-xl">
+                     <div class="secondary-card p-6 rounded-xl reveal-on-scroll relative overflow-hidden">
                         <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
                             <i data-lucide="cpu" class="w-5 h-5 text-black" stroke-width="1.5"></i> AI/ML &amp; Tech
                         </h5>
                         <p class="text-lg text-stone-600">LLMs (GPT-4, Claude), HITL, AI Ops, Prompt Engineering, ML Product Mgmt.</p>
                     </div>
-                    <div class="secondary-card p-6 rounded-xl">
+                    <div class="secondary-card p-6 rounded-xl reveal-on-scroll delay-100 relative overflow-hidden">
                         <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
                             <i data-lucide="layers" class="w-5 h-5 text-black" stroke-width="1.5"></i> Strategy
                         </h5>
                         <p class="text-lg text-stone-600">PLG, Cross-Functional Leadership, P&amp;L Mgmt, GTM Strategy.</p>
                     </div>
-                    <div class="secondary-card p-6 rounded-xl">
+                    <div class="secondary-card p-6 rounded-xl reveal-on-scroll delay-200 relative overflow-hidden">
                         <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
                             <i data-lucide="bar-chart-2" class="w-5 h-5 text-black" stroke-width="1.5"></i> Analytics
                         </h5>
                         <p class="text-lg text-stone-600">A/B Testing, Cohort Analysis, Funnel Optimization, SQL.</p>
                     </div>
-                    <div class="secondary-card p-6 rounded-xl">
+                    <div class="secondary-card p-6 rounded-xl reveal-on-scroll delay-300 relative overflow-hidden">
                         <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
                             <i data-lucide="users" class="w-5 h-5 text-black" stroke-width="1.5"></i> Consumer
                         </h5>
@@ -264,7 +289,7 @@
                 </div>
 
                 <!-- Education -->
-                <div class="secondary-card p-8 rounded-xl flex flex-col md:flex-row gap-8 justify-between items-center text-center md:text-left">
+                <div class="secondary-card p-8 rounded-xl flex flex-col md:flex-row gap-8 justify-between items-center text-center md:text-left reveal-on-scroll relative overflow-hidden">
                     <div>
                         <h4 class="text-xl font-heading font-medium text-black tracking-wide">MBA &amp; MS</h4>
                         <div class="text-stone-500 text-lg">University of Michigan (Ross &amp; SEAS)</div>
@@ -282,6 +307,27 @@
 
     <script>
         lucide.createIcons();
+
+        // Intersection Observer for "Unveiling" Animations
+        document.addEventListener("DOMContentLoaded", function() {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1 // Trigger when 10% of the element is visible
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target); // Only animate once
+                    }
+                });
+            }, observerOptions);
+
+            const elements = document.querySelectorAll('.reveal-on-scroll');
+            elements.forEach(el => observer.observe(el));
+        });
     </script>
 
 </body></html>

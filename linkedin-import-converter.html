@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn to CRM Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .step h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .drop-zone {
+            border: 3px dashed #ccc;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .drop-zone input {
+            display: none;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2em;
+        }
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #f8f9fa;
+            color: #667eea;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .checkbox-col {
+            width: 40px;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .highlight {
+            background: #fff3e0 !important;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+        .tag-ross { background: #e3f2fd; color: #1976d2; }
+        .tag-pm { background: #f3e5f5; color: #7b1fa2; }
+        .tag-director { background: #fff3e0; color: #f57c00; }
+        .tag-vp { background: #e8f5e9; color: #388e3c; }
+        .priority-filters {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .priority-filters h4 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+        .priority-filters label {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LinkedIn to CRM Converter</h1>
+        <p class="subtitle">Import your LinkedIn connections and intelligently filter for job search outreach</p>
+
+        <!-- Step 1: Upload -->
+        <div class="step">
+            <h3>Step 1: Upload LinkedIn Connections.csv</h3>
+            <p style="margin-bottom: 15px;">Export from: LinkedIn Settings → Data Privacy → Get a copy of your data → Connections</p>
+            <div class="drop-zone" id="drop-zone">
+                <p>Drag & drop your <strong>Connections.csv</strong> here<br>or click to browse</p>
+                <input type="file" id="file-input" accept=".csv">
+            </div>
+        </div>
+
+        <!-- Step 2: Filter (shown after upload) -->
+        <div class="step" id="filter-step" style="display: none;">
+            <h3>Step 2: Smart Filter Your Contacts</h3>
+
+            <div class="priority-filters">
+                <h4>Quick Filters (Recommended for Job Search)</h4>
+                <label><input type="checkbox" id="filter-ross" checked> Ross Alumni (company contains "Ross")</label>
+                <label><input type="checkbox" id="filter-pm"> Product Managers</label>
+                <label><input type="checkbox" id="filter-director"> Directors+</label>
+                <label><input type="checkbox" id="filter-recent"> Connected in last 2 years</label>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Company Contains</label>
+                    <input type="text" id="company-filter" placeholder="e.g., Google, Meta, Stripe">
+                </div>
+                <div class="filter-group">
+                    <label>Title Contains</label>
+                    <input type="text" id="title-filter" placeholder="e.g., Product, PM, Director">
+                </div>
+                <div class="filter-group">
+                    <label>Name Contains</label>
+                    <input type="text" id="name-filter" placeholder="Filter by name">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+            <button class="btn" onclick="clearFilters()">Clear Filters</button>
+            <button class="btn" onclick="selectAll()">Select All Visible</button>
+            <button class="btn" onclick="deselectAll()">Deselect All</button>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results" style="display: none;">
+            <h3>Step 3: Review & Export</h3>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="total-count">0</h3>
+                    <p>Total Connections</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="filtered-count">0</h3>
+                    <p>Matching Filters</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="selected-count">0</h3>
+                    <p>Selected for Export</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="ross-count">0</h3>
+                    <p>Ross Alumni</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"></th>
+                            <th>Name</th>
+                            <th>Title</th>
+                            <th>Company</th>
+                            <th>Connected</th>
+                            <th>Tags</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contacts-table">
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn btn-success" onclick="exportForCRM()" id="export-btn" disabled>
+                    Export Selected for CRM Import
+                </button>
+                <button class="btn btn-primary" onclick="exportToSheets()">
+                    Export to Google Sheets Format
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allContacts = [];
+        let filteredContacts = [];
+        let selectedIds = new Set();
+
+        // File upload handling
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (!file || !file.name.endsWith('.csv')) {
+                alert('Please upload a CSV file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                parseLinkedInCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseLinkedInCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+
+            // Find column indices
+            const firstNameIdx = headers.findIndex(h => h.includes('first name') || h === 'first name');
+            const lastNameIdx = headers.findIndex(h => h.includes('last name') || h === 'last name');
+            const emailIdx = headers.findIndex(h => h.includes('email'));
+            const companyIdx = headers.findIndex(h => h.includes('company'));
+            const positionIdx = headers.findIndex(h => h.includes('position') || h.includes('title'));
+            const connectedIdx = headers.findIndex(h => h.includes('connected on') || h.includes('connected'));
+            const urlIdx = headers.findIndex(h => h.includes('url') || h.includes('profile'));
+
+            allContacts = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // Parse CSV line (handling quoted values)
+                const values = parseCSVLine(line);
+
+                const firstName = values[firstNameIdx] || '';
+                const lastName = values[lastNameIdx] || '';
+                const company = values[companyIdx] || '';
+                const position = values[positionIdx] || '';
+
+                if (!firstName && !lastName) continue;
+
+                const contact = {
+                    id: i.toString(),
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: values[emailIdx] || '',
+                    company: company,
+                    title: position,
+                    connectedOn: values[connectedIdx] || '',
+                    linkedinUrl: values[urlIdx] || '',
+                    tags: detectTags(firstName + ' ' + lastName, company, position)
+                };
+
+                allContacts.push(contact);
+            }
+
+            document.getElementById('filter-step').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('total-count').textContent = allContacts.length;
+
+            applyFilters();
+        }
+
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current.trim());
+            return values;
+        }
+
+        function detectTags(name, company, title) {
+            const tags = [];
+            const nameLower = name.toLowerCase();
+            const companyLower = company.toLowerCase();
+            const titleLower = title.toLowerCase();
+
+            // Ross alumni detection
+            if (companyLower.includes('ross') ||
+                companyLower.includes('michigan') ||
+                companyLower.includes('university of michigan')) {
+                tags.push('ross');
+            }
+
+            // Title-based tags
+            if (titleLower.includes('product') || titleLower.includes(' pm') || titleLower === 'pm') {
+                tags.push('pm');
+            }
+            if (titleLower.includes('director')) {
+                tags.push('director');
+            }
+            if (titleLower.includes('vp') || titleLower.includes('vice president')) {
+                tags.push('vp');
+            }
+            if (titleLower.includes('chief') || titleLower.includes('ceo') || titleLower.includes('cto') || titleLower.includes('cpo')) {
+                tags.push('c-suite');
+            }
+
+            return tags;
+        }
+
+        function applyFilters() {
+            const companyFilter = document.getElementById('company-filter').value.toLowerCase();
+            const titleFilter = document.getElementById('title-filter').value.toLowerCase();
+            const nameFilter = document.getElementById('name-filter').value.toLowerCase();
+            const filterRoss = document.getElementById('filter-ross').checked;
+            const filterPM = document.getElementById('filter-pm').checked;
+            const filterDirector = document.getElementById('filter-director').checked;
+            const filterRecent = document.getElementById('filter-recent').checked;
+
+            const twoYearsAgo = new Date();
+            twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+
+            filteredContacts = allContacts.filter(c => {
+                const fullName = `${c.firstName} ${c.lastName}`.toLowerCase();
+                const companyLower = c.company.toLowerCase();
+                const titleLower = c.title.toLowerCase();
+
+                // Text filters
+                if (companyFilter && !companyLower.includes(companyFilter)) return false;
+                if (titleFilter && !titleLower.includes(titleFilter)) return false;
+                if (nameFilter && !fullName.includes(nameFilter)) return false;
+
+                // Quick filters (OR logic - if checked, must match at least one)
+                const quickFiltersActive = filterRoss || filterPM || filterDirector;
+                if (quickFiltersActive) {
+                    let matchesQuickFilter = false;
+                    if (filterRoss && c.tags.includes('ross')) matchesQuickFilter = true;
+                    if (filterPM && c.tags.includes('pm')) matchesQuickFilter = true;
+                    if (filterDirector && (c.tags.includes('director') || c.tags.includes('vp') || c.tags.includes('c-suite'))) matchesQuickFilter = true;
+                    if (!matchesQuickFilter) return false;
+                }
+
+                // Recent filter
+                if (filterRecent && c.connectedOn) {
+                    const connectedDate = new Date(c.connectedOn);
+                    if (connectedDate < twoYearsAgo) return false;
+                }
+
+                return true;
+            });
+
+            renderTable();
+            updateStats();
+        }
+
+        function clearFilters() {
+            document.getElementById('company-filter').value = '';
+            document.getElementById('title-filter').value = '';
+            document.getElementById('name-filter').value = '';
+            document.getElementById('filter-ross').checked = false;
+            document.getElementById('filter-pm').checked = false;
+            document.getElementById('filter-director').checked = false;
+            document.getElementById('filter-recent').checked = false;
+            applyFilters();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('contacts-table');
+            tbody.innerHTML = filteredContacts.map(c => {
+                const isRoss = c.tags.includes('ross');
+                return `
+                    <tr class="${isRoss ? 'highlight' : ''}">
+                        <td><input type="checkbox" ${selectedIds.has(c.id) ? 'checked' : ''} onchange="toggleSelect('${c.id}', this.checked)"></td>
+                        <td><strong>${c.firstName} ${c.lastName}</strong></td>
+                        <td>${c.title || '-'}</td>
+                        <td>${c.company || '-'}</td>
+                        <td>${c.connectedOn || '-'}</td>
+                        <td>${c.tags.map(t => `<span class="tag tag-${t}">${t}</span>`).join('')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleSelect(id, checked) {
+            if (checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+            updateStats();
+        }
+
+        function toggleSelectAll(checkbox) {
+            if (checkbox.checked) {
+                filteredContacts.forEach(c => selectedIds.add(c.id));
+            } else {
+                filteredContacts.forEach(c => selectedIds.delete(c.id));
+            }
+            renderTable();
+            updateStats();
+        }
+
+        function selectAll() {
+            filteredContacts.forEach(c => selectedIds.add(c.id));
+            renderTable();
+            updateStats();
+        }
+
+        function deselectAll() {
+            selectedIds.clear();
+            renderTable();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('filtered-count').textContent = filteredContacts.length;
+            document.getElementById('selected-count').textContent = selectedIds.size;
+            document.getElementById('ross-count').textContent = allContacts.filter(c => c.tags.includes('ross')).length;
+            document.getElementById('export-btn').disabled = selectedIds.size === 0;
+        }
+
+        function exportForCRM() {
+            const selected = allContacts.filter(c => selectedIds.has(c.id));
+
+            // Convert to CRM format
+            const crmContacts = selected.map(c => ({
+                firstName: c.firstName,
+                lastName: c.lastName,
+                company: c.company,
+                title: c.title,
+                email: c.email,
+                linkedin: c.linkedinUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(c.firstName + ' ' + c.lastName)}`,
+                source: c.tags.includes('ross') ? 'ross-alumni' : 'linkedin',
+                status: 'new',
+                notes: `Connected on LinkedIn: ${c.connectedOn}. Tags: ${c.tags.join(', ')}`
+            }));
+
+            // Download as JSON (can be imported directly into CRM)
+            const blob = new Blob([JSON.stringify(crmContacts, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'linkedin-contacts-for-crm.json';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert(`Exported ${selected.length} contacts!\n\nTo import:\n1. Go to your Job Search Dashboard\n2. Click "Contacts CRM" tab\n3. Click "Import from CSV/JSON"\n4. Select the downloaded file`);
+        }
+
+        function exportToSheets() {
+            const selected = allContacts.filter(c => selectedIds.has(c.id));
+
+            const headers = ['First Name', 'Last Name', 'Company', 'Title', 'Email', 'LinkedIn URL', 'Connected On', 'Tags', 'Source', 'Status'];
+            const rows = selected.map(c => [
+                c.firstName,
+                c.lastName,
+                c.company,
+                c.title,
+                c.email,
+                c.linkedinUrl,
+                c.connectedOn,
+                c.tags.join(', '),
+                c.tags.includes('ross') ? 'Ross Alumni' : 'LinkedIn',
+                'New'
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'linkedin-contacts-for-sheets.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Add event listeners for filters
+        ['company-filter', 'title-filter', 'name-filter'].forEach(id => {
+            document.getElementById(id).addEventListener('input', applyFilters);
+        });
+        ['filter-ross', 'filter-pm', 'filter-director', 'filter-recent'].forEach(id => {
+            document.getElementById(id).addEventListener('change', applyFilters);
+        });
+    </script>
+</body>
+</html>
