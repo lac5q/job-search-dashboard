@@ -92,7 +92,7 @@
         /* Front Specifics */
         .card-front {
             z-index: 2;
-            padding: 2.5rem;
+            padding: 3.5rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -108,6 +108,12 @@
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.4s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
         }
         
         .card-front:hover .hover-summary {
@@ -128,15 +134,20 @@
         /* Flip Toggle Button (Tap area) */
         .flip-btn {
             cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            background-color: #f5f5f4;
-            color: #78716c;
-            transition: all 0.2s;
+            padding: 0;
+            background: none;
+            border: none;
+            color: #a8a29e;
+            font-family: 'PT Serif', serif;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
         }
         .flip-btn:hover {
-            background-color: #e7e5e4;
             color: #000;
+            transform: translateX(4px);
         }
 
         /* Close Button on Back */
@@ -164,6 +175,34 @@
             border-radius: 4px;
         }
 
+        /* Early Career Toggle Button */
+        .early-career-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border: 1px solid #e7e5e4;
+            border-radius: 1rem;
+            color: #57534e;
+            font-family: 'PT Serif', serif;
+            font-size: 1.25rem; /* Bigger font */
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+        .early-career-toggle:hover {
+            border-color: #a8a29e;
+            background-color: #fafaf9;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 antialiased overflow-x-hidden selection:bg-black selection:text-white">
@@ -220,8 +259,8 @@
                 </div>
 
                 <!-- 3. Bio -->
-                <div class="pt-8 border-t border-stone-100 w-full">
-                    <p class="text-lg md:text-xl leading-relaxed text-stone-600 font-normal">
+                <div class="pt-8 border-t border-stone-100 w-full py-8">
+                    <p class="text-xl md:text-2xl leading-loose text-stone-600 font-normal">
                         <span class="text-black italic">Data-driven product leader</span> with proven track record across <span class="text-black italic">$900M TurboTax, $800M Ancestry, and global eBay marketplace</span>. Currently CEO of $3M e-commerce business. Deep expertise in <span class="text-black italic">Product-Led Growth, AI/ML products, and conversion optimization</span>.
                     </p>
                 </div>
@@ -263,7 +302,7 @@
                             <div>
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h4 class="text-2xl font-heading font-medium text-black tracking-wide">Principal Product Manager - AI/ML</h4>
+                                        <h4 class="text-4xl font-heading font-medium text-black tracking-wide">Principal Product Manager - AI/ML</h4>
                                         <div class="flex items-center gap-3 mt-2">
                                             <img src="https://logo.clearbit.com/intuit.com" class="w-6 h-6 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Intuit" onerror="this.style.display='none'">
                                             <div class="text-stone-500 text-lg italic">Intuit - TurboTax Self-Employed</div>
@@ -274,7 +313,7 @@
                                 
                                 <!-- Hover Summary -->
                                 <div class="hover-summary mt-8">
-                                    <p class="text-lg text-stone-600 italic">Led $900M business serving 4M+ solopreneurs. Delivered 10-15% CAGR through AI innovation.</p>
+                                    <p class="text-xl text-stone-600 italic">Led $900M business serving 4M+ solopreneurs. Delivered 10-15% CAGR through AI innovation.</p>
                                     <div class="flex gap-4 mt-4">
                                         <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">PLG Strategy</span>
                                         <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">AI/ML Products</span>
@@ -345,7 +384,7 @@
                             <div>
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h4 class="text-2xl font-heading font-medium text-black tracking-wide">CEO - AI Transformation</h4>
+                                        <h4 class="text-4xl font-heading font-medium text-black tracking-wide">CEO - AI Transformation</h4>
                                         <div class="flex items-center gap-3 mt-2">
                                             <img src="https://logo.clearbit.com/sketchpop.com" class="w-6 h-6 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="SketchPop" onerror="this.style.display='none'">
                                             <div class="text-stone-500 text-lg italic">SketchPop LLC</div>
@@ -356,7 +395,7 @@
                                 
                                 <!-- Hover Summary -->
                                 <div class="hover-summary mt-8">
-                                    <p class="text-lg text-stone-600 italic">CEO of $3M consumer e-commerce (20% margins). Doubled order volume through AI automation.</p>
+                                    <p class="text-xl text-stone-600 italic">CEO of $3M consumer e-commerce (20% margins). Doubled order volume through AI automation.</p>
                                     <div class="flex gap-4 mt-4">
                                         <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">AI Operations</span>
                                         <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Growth</span>
@@ -424,7 +463,7 @@
                                                 <i data-lucide="microscope" class="w-5 h-5"></i>
                                             </div>
                                             <div>
-                                                <h4 class="text-xl font-heading font-medium text-black tracking-wide">Founder & Principal Consultant</h4>
+                                                <h4 class="text-3xl font-heading font-medium text-black tracking-wide">Founder & Principal Consultant</h4>
                                                 <div class="text-stone-500 text-base mt-0.5">GrowthAlchemyLab</div>
                                             </div>
                                         </div>
@@ -433,7 +472,7 @@
                                     
                                     <!-- Hover Summary -->
                                     <div class="hover-summary mt-8">
-                                        <p class="text-lg text-stone-600 italic">Founded AI/ML product consulting practice. Helping consumer/PLG companies achieve 30-50% cost reduction via AI.</p>
+                                        <p class="text-xl text-stone-600 italic">Founded AI/ML product consulting practice. Helping consumer/PLG companies achieve 30-50% cost reduction via AI.</p>
                                         <div class="flex gap-4 mt-4">
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">AI Strategy</span>
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">LLM Implementation</span>
@@ -498,7 +537,7 @@
                                                 <i data-lucide="banknote" class="w-5 h-5"></i>
                                             </div>
                                             <div>
-                                                <h4 class="text-xl font-heading font-medium text-black tracking-wide">Managing Partner</h4>
+                                                <h4 class="text-3xl font-heading font-medium text-black tracking-wide">Managing Partner</h4>
                                                 <div class="text-stone-500 text-base mt-0.5">Epilogue Capital</div>
                                             </div>
                                         </div>
@@ -507,7 +546,7 @@
                                     
                                     <!-- Hover Summary -->
                                     <div class="hover-summary mt-8">
-                                        <p class="text-lg text-stone-600 italic">Investment firm acquiring and operating profitable consumer/SMB businesses. Hands-on product leadership.</p>
+                                        <p class="text-xl text-stone-600 italic">Investment firm acquiring and operating profitable consumer/SMB businesses. Hands-on product leadership.</p>
                                         <div class="flex gap-4 mt-4">
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">M&A</span>
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Operations</span>
@@ -564,7 +603,7 @@
                                                 <i data-lucide="heart-pulse" class="w-5 h-5"></i>
                                             </div>
                                             <div>
-                                                <h4 class="text-xl font-heading font-medium text-black tracking-wide">Director of Product Management</h4>
+                                                <h4 class="text-3xl font-heading font-medium text-black tracking-wide">Director of Product Management</h4>
                                                 <div class="text-stone-500 text-base mt-0.5">Doctor.com</div>
                                             </div>
                                         </div>
@@ -573,7 +612,7 @@
                                     
                                     <!-- Hover Summary -->
                                     <div class="hover-summary mt-8">
-                                        <p class="text-lg text-stone-600 italic">Product analytics and publisher operations platform. Increased engagement 15%.</p>
+                                        <p class="text-xl text-stone-600 italic">Product analytics and publisher operations platform. Increased engagement 15%.</p>
                                         <div class="flex gap-4 mt-4">
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Analytics</span>
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">HealthTech</span>
@@ -630,7 +669,7 @@
                                                 <i data-lucide="gem" class="w-5 h-5"></i>
                                             </div>
                                             <div>
-                                                <h4 class="text-xl font-heading font-medium text-black tracking-wide">Director of Product - Growth</h4>
+                                                <h4 class="text-3xl font-heading font-medium text-black tracking-wide">Director of Product - Growth</h4>
                                                 <div class="text-stone-500 text-base mt-0.5">Ancestry</div>
                                             </div>
                                         </div>
@@ -639,7 +678,7 @@
                                     
                                     <!-- Hover Summary -->
                                     <div class="hover-summary mt-8">
-                                        <p class="text-lg text-stone-600 italic">Led growth initiatives for $800M subscription business. Mobile lift of 30%.</p>
+                                        <p class="text-xl text-stone-600 italic">Led growth initiatives for $800M subscription business. Mobile lift of 30%.</p>
                                         <div class="flex gap-4 mt-4">
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Growth</span>
                                             <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Mobile</span>
@@ -713,7 +752,7 @@
                                                     <i data-lucide="grid" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Growth Product Leader</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Growth Product Leader</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">Tile</div>
                                                 </div>
                                             </div>
@@ -722,7 +761,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Defined and launched hardware-as-a-service subscription program.</p>
+                                            <p class="text-xl text-stone-600 italic">Defined and launched hardware-as-a-service subscription program.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">IoT</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Subscriptions</span>
@@ -778,7 +817,7 @@
                                                     <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Product Leader - Payments</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Product Leader - Payments</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">eBay Marketplaces</div>
                                                 </div>
                                             </div>
@@ -787,7 +826,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Led checkout optimization ($100M+ lift) and payments analytics team.</p>
+                                            <p class="text-xl text-stone-600 italic">Led checkout optimization ($100M+ lift) and payments analytics team.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">E-commerce</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Payments</span>
@@ -851,7 +890,7 @@
                                                     <i data-lucide="briefcase" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Management Consultant</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Management Consultant</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">Accenture</div>
                                                 </div>
                                             </div>
@@ -860,7 +899,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Strategy consultant focused on Marketing, Sales, and CRM transformation.</p>
+                                            <p class="text-xl text-stone-600 italic">Strategy consultant focused on Marketing, Sales, and CRM transformation.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Strategy</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">CRM</span>
@@ -913,7 +952,7 @@
                                                     <i data-lucide="rocket" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Co-Founder & Director of Product</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Co-Founder & Director of Product</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">Bebarang.com</div>
                                                 </div>
                                             </div>
@@ -922,7 +961,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Co-founded innovative online e-commerce exchange platform.</p>
+                                            <p class="text-xl text-stone-600 italic">Co-founded innovative online e-commerce exchange platform.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Founder</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Product</span>
@@ -974,7 +1013,7 @@
                                                     <i data-lucide="monitor" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Product Manager</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Product Manager</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">Irdeto</div>
                                                 </div>
                                             </div>
@@ -983,7 +1022,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Led implementation of billing support systems generating over $10M.</p>
+                                            <p class="text-xl text-stone-600 italic">Led implementation of billing support systems generating over $10M.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Billing Systems</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Media</span>
@@ -1033,7 +1072,7 @@
                                                     <i data-lucide="activity" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Product Manager</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Product Manager</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">MedImpact</div>
                                                 </div>
                                             </div>
@@ -1042,7 +1081,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Designed billing software solution increasing revenues by $75M.</p>
+                                            <p class="text-xl text-stone-600 italic">Designed billing software solution increasing revenues by $75M.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Healthcare</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Billing</span>
@@ -1092,7 +1131,7 @@
                                                     <i data-lucide="shield" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Senior Consultant</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Senior Consultant</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">Booz Allen Hamilton</div>
                                                 </div>
                                             </div>
@@ -1101,7 +1140,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Led requirements/design for complex IRS system.</p>
+                                            <p class="text-xl text-stone-600 italic">Led requirements/design for complex IRS system.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Consulting</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Government</span>
@@ -1151,7 +1190,7 @@
                                                     <i data-lucide="code" class="w-5 h-5"></i>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-xl font-heading font-medium text-stone-700">Senior Consultant</h4>
+                                                    <h4 class="text-2xl font-heading font-medium text-stone-700">Senior Consultant</h4>
                                                     <div class="text-stone-500 text-base mt-0.5">Capgemini</div>
                                                 </div>
                                             </div>
@@ -1160,7 +1199,7 @@
                                         
                                         <!-- Hover Summary -->
                                         <div class="hover-summary mt-8">
-                                            <p class="text-lg text-stone-600 italic">Analyzed requirements and tested $1B billing system.</p>
+                                            <p class="text-xl text-stone-600 italic">Analyzed requirements and tested $1B billing system.</p>
                                             <div class="flex gap-4 mt-4">
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">QA</span>
                                                 <span class="px-3 py-1 bg-stone-100 rounded-full text-sm text-stone-600">Telecom</span>
@@ -1240,13 +1279,13 @@
                 <!-- Education -->
                 <div class="secondary-card p-8 rounded-xl flex flex-col md:flex-row gap-8 justify-between items-center text-center md:text-left reveal-on-scroll relative overflow-hidden">
                     <div>
-                        <h4 class="text-xl font-heading font-medium text-black tracking-wide">MBA &amp; MS</h4>
+                        <h4 class="text-3xl font-heading font-medium text-black tracking-wide">MBA &amp; MS</h4>
                         <div class="text-stone-500 text-lg">University of Michigan</div>
                         <div class="text-stone-400 text-sm italic mt-1">Ross School of Business &amp; SEAS (Erb Institute)</div>
                     </div>
                     <div class="hidden md:block h-8 w-px bg-stone-300"></div>
                      <div>
-                        <h4 class="text-xl font-heading font-medium text-black tracking-wide">BS Electrical Engineering</h4>
+                        <h4 class="text-3xl font-heading font-medium text-black tracking-wide">BS Electrical Engineering</h4>
                         <div class="text-stone-500 text-lg">University of Virginia</div>
                     </div>
                 </div>
