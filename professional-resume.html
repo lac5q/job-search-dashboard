@@ -20,7 +20,27 @@
         ::-webkit-scrollbar-thumb { background-color: #d6d3d1; border-radius: 20px; }
         ::-webkit-scrollbar-thumb:hover { background-color: #a8a29e; }
 
-        /* --- UNVEILING ANIMATIONS --- */
+        /* --- DRAMATIC HERO ANIMATIONS --- */
+        .hero-reveal {
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(80px) scale(0.9);
+            transition: all 1.2s cubic-bezier(0.165, 0.84, 0.44, 1); /* Custom ease-out-quart */
+            will-change: opacity, transform, filter;
+        }
+
+        .hero-reveal.is-visible {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0) scale(1);
+        }
+
+        .hero-delay-1 { transition-delay: 0.2s; }
+        .hero-delay-2 { transition-delay: 0.4s; }
+        .hero-delay-3 { transition-delay: 0.6s; }
+        .hero-delay-4 { transition-delay: 0.8s; }
+
+        /* --- UNVEILING ANIMATIONS (Standard) --- */
 
         /* Base class for elements to be revealed */
         .reveal-on-scroll {
@@ -227,25 +247,25 @@
         <div class="max-w-3xl mx-auto space-y-12">
 
             <!-- Hero Section -->
-            <section id="about" class="hero-card p-12 md:p-16 reveal-on-scroll flex flex-col items-center text-center gap-8 rounded-xl overflow-hidden relative">
+            <section id="about" class="hero-card p-12 md:p-16 flex flex-col items-center text-center gap-8 rounded-xl overflow-hidden relative">
                 
                 <!-- 1. Image -->
-                <div class="relative w-32 h-32 md:w-40 md:h-40 shrink-0">
+                <div class="relative w-32 h-32 md:w-40 md:h-40 shrink-0 hero-reveal">
                     <img src="https://media.licdn.com/dms/image/v2/D5603AQFLhrcVCSYY8w/profile-displayphoto-shrink_800_800/B56ZX04IgtHQAg-/0/1743570110941?e=1766620800&v=beta&t=9KHaWvyX8UvAxH_yLT7FD15TObn3kZgtfQP1A3j7m1o" alt="Luis Calderon" class="w-full h-full object-cover rounded-full border border-stone-200 shadow-sm">
                 </div>
 
                 <!-- 2. Content Stack -->
                 <div class="space-y-6 max-w-xl">
-                    <h1 class="text-5xl md:text-6xl font-heading font-semibold text-black tracking-wider leading-[1.1]">
+                    <h1 class="text-5xl md:text-6xl font-heading font-semibold text-black tracking-wider leading-[1.1] hero-reveal hero-delay-1">
                         Luis Calderon
                     </h1>
                     
-                    <h2 class="text-2xl md:text-3xl font-heading font-semibold text-stone-700 tracking-wide leading-snug">
+                    <h2 class="text-2xl md:text-3xl font-heading font-semibold text-stone-700 tracking-wide leading-snug hero-reveal hero-delay-2">
                         Product Leader | PLG Expert | AI Innovation
                     </h2>
 
                     <!-- Socials -->
-                    <div class="flex justify-center gap-4 pt-2">
+                    <div class="flex justify-center gap-4 pt-2 hero-reveal hero-delay-3">
                         <a href="mailto:luis@calderon.com" class="p-2 text-stone-500 hover:text-black transition-colors border border-transparent hover:border-stone-200 rounded-full">
                             <i data-lucide="mail" class="w-6 h-6" stroke-width="1.5"></i>
                         </a>
@@ -259,7 +279,7 @@
                 </div>
 
                 <!-- 3. Bio -->
-                <div class="pt-8 border-t border-stone-100 w-full py-8">
+                <div class="pt-8 border-t border-stone-100 w-full py-8 hero-reveal hero-delay-4">
                     <p class="text-xl md:text-2xl leading-loose text-stone-600 font-normal">
                         <span class="text-black italic">Data-driven product leader</span> with proven track record across <span class="text-black italic">$900M TurboTax, $800M Ancestry, and global eBay marketplace</span>. Currently CEO of $3M e-commerce business. Deep expertise in <span class="text-black italic">Product-Led Growth, AI/ML products, and conversion optimization</span>.
                     </p>
@@ -1325,6 +1345,9 @@
 
             const revealElements = document.querySelectorAll('.reveal-on-scroll');
             revealElements.forEach(el => revealObserver.observe(el));
+
+            const heroElements = document.querySelectorAll('.hero-reveal');
+            heroElements.forEach(el => revealObserver.observe(el));
 
             // 2. Focus on scroll (Scale effect)
             const focusOptions = {
