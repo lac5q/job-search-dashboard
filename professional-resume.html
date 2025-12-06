@@ -1,549 +1,287 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" class="scroll-smooth"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luis Calderon - Product Leader Resume</title>
+    <title>Luis Calderon - Product Leader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide @latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <!-- Importing PT Serif (Headings) and Instrument Serif (Body) -->
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Typography Mapping */
+        body { font-family: 'Instrument Serif', serif; }
+        h1, h2, h3, h4, h5, .font-heading { font-family: 'PT Serif', serif; }
+        
+        /* Animation Utilities: 3D Sequence with Linear Easing */
+        .animate-sequence > * {
+            opacity: 0;
+            transform: perspective(1000px) rotateX(15deg) translateY(20px) scale(0.98);
+            animation: threeDFadeIn 0.8s linear forwards; /* Linear easing, Normal Direction */
+            animation-iteration-count: 1; /* Repeat Once */
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            line-height: 1.5;
-        }
+        /* Staggered Delays starting at 0.1s */
+        .animate-sequence > *:nth-child(1) { animation-delay: 0.1s; }
+        .animate-sequence > *:nth-child(2) { animation-delay: 0.2s; }
+        .animate-sequence > *:nth-child(3) { animation-delay: 0.3s; }
+        .animate-sequence > *:nth-child(4) { animation-delay: 0.4s; }
+        .animate-sequence > *:nth-child(5) { animation-delay: 0.5s; }
 
-        .resume-container {
-            max-width: 8.5in;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        .page {
-            width: 8.5in;
-            min-height: 11in;
-            padding: 0.6in;
-            page-break-after: always;
-            background: white;
-        }
-
-        .page:last-child {
-            page-break-after: auto;
-        }
-
-        /* Header with Photo */
-        .header {
-            display: flex;
-            align-items: flex-start;
-            gap: 25px;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #2c3e50;
-        }
-
-        .photo-container {
-            flex-shrink: 0;
-        }
-
-        .profile-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #3498db;
-            background: #e8f4f8;
-        }
-
-        .header-content {
-            flex: 1;
-        }
-
-        .name {
-            font-size: 36px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
-            letter-spacing: -0.5px;
-        }
-
-        .title {
-            font-size: 16px;
-            color: #3498db;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .contact-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            font-size: 11px;
-            color: #555;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Executive Summary */
-        .summary {
-            background: #f8f9fa;
-            padding: 18px;
-            border-left: 4px solid #3498db;
-            margin-bottom: 25px;
-            font-size: 11px;
-            line-height: 1.6;
-        }
-
-        .summary-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Section Headers */
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 12px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid #3498db;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Experience Items */
-        .experience-item {
-            margin-bottom: 18px;
-        }
-
-        .experience-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 4px;
-        }
-
-        .job-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .job-duration {
-            font-size: 10px;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .company-name {
-            font-size: 12px;
-            color: #3498db;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .job-description {
-            font-size: 10.5px;
-            color: #444;
-            line-height: 1.5;
-            margin-bottom: 6px;
-        }
-
-        .achievements {
-            list-style: none;
-            margin-left: 0;
-        }
-
-        .achievements li {
-            font-size: 10.5px;
-            color: #444;
-            padding-left: 15px;
-            margin-bottom: 4px;
-            position: relative;
-            line-height: 1.5;
-        }
-
-        .achievements li:before {
-            content: "▸";
-            position: absolute;
-            left: 0;
-            color: #3498db;
-            font-weight: bold;
-        }
-
-        /* Skills */
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .skill-category {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 4px;
-            border-left: 3px solid #3498db;
-        }
-
-        .skill-category-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 6px;
-        }
-
-        .skill-list {
-            font-size: 10px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        /* Education */
-        .education-item {
-            margin-bottom: 12px;
-        }
-
-        .degree {
-            font-size: 12px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .school {
-            font-size: 11px;
-            color: #3498db;
-            font-weight: 600;
-        }
-
-        .education-details {
-            font-size: 10px;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        /* Two Column Layout for Page 2 */
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        /* Print Styles */
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .resume-container {
-                box-shadow: none;
-                max-width: none;
-            }
-
-            .page {
-                padding: 0.5in;
-                box-shadow: none;
-            }
-
-            .no-print {
-                display: none;
+        @keyframes threeDFadeIn {
+            to { 
+                opacity: 1; 
+                transform: perspective(1000px) rotateX(0) translateY(0) scale(1); 
             }
         }
 
-        /* Print Button */
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-            z-index: 1000;
+        /* Hero Card Style - Flat, Light Mode, Stone Colors, Shadow-LG */
+        .hero-card {
+            background-color: #ffffff; 
+            border: 1px solid #e7e5e4; /* stone-200 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
         }
 
-        .print-button:hover {
-            background: #2980b9;
+        /* Secondary cards - Light Mode */
+        .secondary-card {
+            background-color: #ffffff;
+            border: 1px solid #e7e5e4; /* stone-200 */
+            transition: all 0.3s linear;
+        }
+        .secondary-card:hover {
+            border-color: #a8a29e; /* stone-400 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
         }
 
-        /* Highlight boxes */
-        .highlight-box {
-            background: #e8f4f8;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            border-left: 3px solid #3498db;
-        }
-
-        .highlight-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .highlight-text {
-            font-size: 10px;
-            color: #555;
-            line-height: 1.5;
-        }
+        /* Custom Scrollbar Stone */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background-color: #d6d3d1; border-radius: 20px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #a8a29e; }
     </style>
 </head>
-<body>
-    <button class="print-button no-print" onclick="window.print()">🖨️ Print/Save as PDF</button>
+<body class="bg-stone-100 text-stone-800 antialiased overflow-x-hidden selection:bg-black selection:text-white">
 
-    <div class="resume-container">
-        <!-- PAGE 1 -->
-        <div class="page">
-            <!-- Header with Photo -->
-            <div class="header">
-                <div class="photo-container">
-                    <!-- Replace with your actual LinkedIn photo URL -->
-                    <img src="https://media.licdn.com/dms/image/v2/D5603AQFLhrcVCSYY8w/profile-displayphoto-shrink_800_800/B56ZX04IgtHQAg-/0/1743570110941?e=1766620800&v=beta&t=9KHaWvyX8UvAxH_yLT7FD15TObn3kZgtfQP1A3j7m1o" alt="Luis Calderon" class="profile-photo">
-                </div>
-                <div class="header-content">
-                    <h1 class="name">LUIS CALDERON</h1>
-                    <div class="title">Product Leader | PLG/Consumer/SMB Expert | AI/ML Innovation</div>
-                    <div class="contact-info">
-                        <span class="contact-item">📧 luis@calderon.com</span>
-                        <span class="contact-item">📱 703.786.7899</span>
-                        <span class="contact-item">🔗 linkedin.com/in/luiscalderon</span>
-                        <span class="contact-item">📍 San Diego, CA (Remote/Travel to LA/SF)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Executive Summary -->
-            <div class="summary">
-                <div class="summary-title">Executive Summary</div>
-                <p><strong>Data-driven product leader</strong> with proven track record across <strong>$900M TurboTax, $800M Ancestry, and global eBay marketplace</strong>. Currently CEO of $3M e-commerce business. Deep expertise in <strong>Product-Led Growth, AI/ML products, and conversion optimization</strong>. Shipped 4 AI products pre-ChatGPT, now leveraging modern LLMs for operational transformation.</p>
-                <p style="margin-top: 8px;"><strong>Core Strengths:</strong> Data-driven decision making • Product-Led Growth at scale • AI/ML product innovation • Consumer/SMB expertise • Team leadership • Conversion optimization (+2% eBay = $100M+, 30% mobile lift Ancestry)</p>
-            </div>
-
-            <!-- Professional Experience -->
-            <div class="section">
-                <h2 class="section-title">Professional Experience</h2>
-
-                <!-- Intuit -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Principal Product Manager (Group PM) - AI/ML Products</div>
-                        <div class="job-duration">2021 - 2024</div>
-                    </div>
-                    <div class="company-name">Intuit - TurboTax Self-Employed | Mountain View, CA</div>
-                    <p class="job-description">Led $900M TurboTax Self-Employed business serving 4M+ solopreneurs. Managed 4 PMs, delivered 10-15% CAGR ($100-150M annual growth) through data-driven product decisions and AI innovation.</p>
-                    <ul class="achievements">
-                        <li><strong>Shipped 4 AI/ML Products:</strong> Expense Categorization AI (60%+ reduction in manual entry), Deduction Finder ML (HITL training, $1,200+ avg refund increase), Audit Risk Predictor, Document Extraction AI (OCR/AI for W-2s, 1099s)</li>
-                        <li><strong>Product-Led Growth:</strong> Pure PLG motion with zero sales team—freemium model, self-service onboarding, millions of users</li>
-                        <li><strong>Data-Driven Execution:</strong> Cohort analysis, funnel optimization, A/B testing to identify friction and drive conversion improvements</li>
-                        <li><strong>Team Leadership:</strong> Hired and mentored 4 Product Managers, established experimentation framework and metrics-driven culture</li>
-                    </ul>
-                </div>
-
-                <!-- SketchPop -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">CEO - AI-Powered E-commerce Transformation</div>
-                        <div class="job-duration">2018 - Present</div>
-                    </div>
-                    <div class="company-name">SketchPop LLC (Custom Caricatures, Turned Yellow, Make Me Jedi) | San Diego, CA</div>
-                    <p class="job-description">CEO of $3M consumer e-commerce business with 20% margins and 30-person team. Multi-hat role: product leader, marketing, operations, finance.</p>
-                    <ul class="achievements">
-                        <li><strong>AI Operations Leadership:</strong> Deployed AI chatbot (40% cost reduction, 4.8+ stars), LLM-powered customer communication (GPT-4/Claude), AI demand forecasting (30% reduction in fulfillment delays)</li>
-                        <li><strong>Product Innovation:</strong> Rebuilt backend with modern AI infrastructure, AI quality control system, ML preference prediction, AI content generation for SEO/marketing</li>
-                        <li><strong>Data-Driven Growth:</strong> Funnel optimization, cohort analysis for repeat purchase, A/B testing on pricing/bundling, LTV/CAC/retention dashboards</li>
-                        <li><strong>Impact:</strong> $3M revenue, 20% margins, 2x order volume with same team size through AI automation</li>
-                    </ul>
-                </div>
-
-                <!-- GrowthAlchemyLab -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Founder & Principal Consultant</div>
-                        <div class="job-duration">2024 - Present</div>
-                    </div>
-                    <div class="company-name">GrowthAlchemyLab | Remote</div>
-                    <p class="job-description">AI/ML product consulting practice advising consumer, e-commerce, and PLG companies on AI strategy and implementation.</p>
-                    <ul class="achievements">
-                        <li><strong>AI Product Strategy:</strong> Guide companies on AI roadmap, feature prioritization, build vs. buy decisions, metrics frameworks</li>
-                        <li><strong>Client Engagements:</strong> Ivo.AI (AI sales automation product advisor), e-commerce platforms (chatbot deployment, 40%+ cost reduction), consumer/PLG companies (AI onboarding, conversion, retention tools)</li>
-                        <li><strong>Impact:</strong> 30-50% cost reduction through AI automation, 15-25% improvement in customer retention, hands-on implementation guidance</li>
-                    </ul>
-                </div>
-
-                <!-- Ancestry -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Director of Product Management - Growth</div>
-                        <div class="job-duration">2016 - 2017</div>
-                    </div>
-                    <div class="company-name">Ancestry | San Francisco Bay Area</div>
-                    <p class="job-description">Director of Product for $800M consumer subscription business. Led acquisition, conversion, and growth initiatives.</p>
-                    <ul class="achievements">
-                        <li><strong>Conversion Wins:</strong> Abandon cart feature (5% revenue lift), mobile app optimization (30% lift in subscriptions), new shopping experiences</li>
-                        <li><strong>Cross-Functional Leadership:</strong> Collaborated with Finance, Product, Marketing, Member Services on growth opportunities</li>
-                    </ul>
-                </div>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-stone-100/90 backdrop-blur-md border-b border-stone-200">
+        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="text-2xl font-heading font-semibold tracking-wide text-black">LC.</div>
+            <div class="hidden md:flex items-center gap-8 text-lg font-normal text-stone-500">
+                <a href="#about" class="hover:text-black transition-colors">About</a>
+                <a href="#experience" class="hover:text-black transition-colors">Experience</a>
+                <a href="#competencies" class="hover:text-black transition-colors">Skills</a>
+                <button onclick="window.print()" class="bg-black text-white px-5 py-2 hover:bg-stone-800 transition-all flex items-center gap-2 text-base font-normal tracking-wide border border-transparent rounded-sm shadow-sm">
+                    <span>Resume</span>
+                </button>
             </div>
         </div>
+    </nav>
 
-        <!-- PAGE 2 -->
-        <div class="page">
-            <!-- Professional Experience (Continued) -->
-            <div class="section">
-                <h2 class="section-title">Professional Experience (Continued)</h2>
+    <!-- Main Content -->
+    <main class="relative z-10 pt-32 pb-24 px-4 md:px-6">
+        <div class="max-w-3xl mx-auto space-y-12">
 
-                <!-- eBay -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Product Leader - Payments & Customer Connection</div>
-                        <div class="job-duration">2013 - 2015</div>
-                    </div>
-                    <div class="company-name">eBay Marketplaces | San Francisco Bay Area</div>
-                    <p class="job-description">Product leader for eBay Payments (checkout, cart, installments) and Customer Connection (My eBay, sign-in, registration).</p>
-                    <ul class="achievements">
-                        <li><strong>Conversion Optimization:</strong> Led checkout optimization achieving +2% conversion improvement—drove <strong>$100M+ business lift</strong></li>
-                        <li><strong>Operational Excellence:</strong> Reduced checkout defects 33%, improved NPS scores, shipped mobile and web features for millions</li>
-                        <li><strong>Analytics Leadership:</strong> Managed team of 6+ analysts providing strategic insights, A/B tests, and metrics for payments/checkout</li>
-                    </ul>
+            <!-- Hero Section: Card Layout / Centered / Light Mode / PT Serif & Instrument Serif -->
+            <section id="about" class="hero-card p-12 md:p-16 animate-sequence flex flex-col items-center text-center gap-8 rounded-xl">
+                
+                <!-- 1. Image -->
+                <div class="relative w-32 h-32 md:w-40 md:h-40 shrink-0">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Luis Calderon" class="w-full h-full object-cover rounded-full border border-stone-200 shadow-sm">
                 </div>
 
-                <!-- Epilogue Capital -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Managing Partner</div>
-                        <div class="job-duration">2018 - Present</div>
-                    </div>
-                    <div class="company-name">Epilogue Capital | San Diego, CA</div>
-                    <p class="job-description">Investment firm focused on acquiring and operating profitable consumer/SMB businesses.</p>
-                    <ul class="achievements">
-                        <li><strong>Portfolio:</strong> SketchPop acquisition and scaling to $3M revenue with 20% margins through AI-powered innovation</li>
-                        <li><strong>Hands-On Operator:</strong> Act as product leader/CEO for portfolio companies, applying PM expertise to drive growth</li>
-                    </ul>
-                </div>
+                <!-- 2. Content Stack -->
+                <div class="space-y-6 max-w-xl">
+                    <!-- Heading: PT Serif, 48-64px, Semibold, Wide spacing -->
+                    <h1 class="text-5xl md:text-6xl font-heading font-semibold text-black tracking-wider leading-[1.1]">
+                        Luis Calderon
+                    </h1>
+                    
+                    <!-- Subheading: PT Serif, 28-32px (text-3xl), Semibold -->
+                    <h2 class="text-2xl md:text-3xl font-heading font-semibold text-stone-700 tracking-wide leading-snug">
+                        Product Leader | PLG Expert | AI Innovation
+                    </h2>
 
-                <!-- Earlier Experience -->
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Director of Product Management</div>
-                        <div class="job-duration">2017 - 2018</div>
-                    </div>
-                    <div class="company-name">Doctor.com | San Francisco Bay Area</div>
-                    <ul class="achievements">
-                        <li>Launched personalized reporting platform (15% engagement increase), developed analytics infrastructure and product OKRs</li>
-                    </ul>
-                </div>
-
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Growth Product Leader</div>
-                        <div class="job-duration">2015 - 2016</div>
-                    </div>
-                    <div class="company-name">Tile | San Francisco Bay Area</div>
-                    <ul class="achievements">
-                        <li>Defined and launched hardware-as-a-service subscription/renewal program, including business case, GTM strategy, A/B testing</li>
-                    </ul>
-                </div>
-
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div class="job-title">Management Consultant</div>
-                        <div class="job-duration">2010 - 2012</div>
-                    </div>
-                    <div class="company-name">Accenture | San Francisco</div>
-                    <ul class="achievements">
-                        <li>Marketing & Sales Strategy for Communication, Media & Technology companies. CRM implementations, market entry strategy, value case planning</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Skills Section -->
-            <div class="section">
-                <h2 class="section-title">Core Competencies</h2>
-                <div class="skills-grid">
-                    <div class="skill-category">
-                        <div class="skill-category-title">Product & Strategy</div>
-                        <div class="skill-list">Product-Led Growth • Product Strategy • Cross-Functional Leadership • Team Leadership • P&L Management • Go-to-Market Strategy</div>
-                    </div>
-                    <div class="skill-category">
-                        <div class="skill-category-title">AI/ML & Technology</div>
-                        <div class="skill-list">AI/ML Product Management • Large Language Models (GPT-4, Claude, Gemini) • Human-in-the-Loop (HITL) • AI Operations • Prompt Engineering • LLM Integration</div>
-                    </div>
-                    <div class="skill-category">
-                        <div class="skill-category-title">Data & Analytics</div>
-                        <div class="skill-list">Data-Driven Decision Making • A/B Testing • Cohort Analysis • Funnel Optimization • Product Analytics • Data Science • SQL</div>
-                    </div>
-                    <div class="skill-category">
-                        <div class="skill-category-title">Consumer & Growth</div>
-                        <div class="skill-list">Consumer Product Management • Freemium Models • Conversion Optimization • E-commerce • Subscription Business Models • Retention Strategies</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Education -->
-            <div class="section">
-                <h2 class="section-title">Education</h2>
-                <div class="education-item">
-                    <div class="degree">Master of Business Administration (MBA)</div>
-                    <div class="school">University of California, Berkeley - Haas School of Business</div>
-                    <div class="education-details">Focus: Product Management, Strategy, Technology</div>
-                </div>
-                <div class="education-item">
-                    <div class="degree">Bachelor of Science in Industrial & Systems Engineering</div>
-                    <div class="school">Virginia Tech</div>
-                    <div class="education-details">Minor: Business</div>
-                </div>
-            </div>
-
-            <!-- Key Achievements Highlight -->
-            <div class="section">
-                <h2 class="section-title">Key Achievements</h2>
-                <div class="two-column">
-                    <div>
-                        <div class="highlight-box">
-                            <div class="highlight-title">Revenue Impact</div>
-                            <div class="highlight-text">$100M+ business lift at eBay (2% checkout conversion) • 10-15% CAGR on $900M business at Intuit • 5% revenue lift at Ancestry</div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="highlight-box">
-                            <div class="highlight-title">AI Innovation</div>
-                            <div class="highlight-text">Shipped 4 AI/ML products pre-ChatGPT at Intuit • 40% cost reduction through AI chatbot at SketchPop • Early LLM adopter for operations</div>
+                    <!-- Socials -->
+                    <div class="flex justify-center gap-4 pt-2">
+                        <a href="mailto:luis @calderon.com" class="p-2 text-stone-500 hover:text-black transition-colors border border-transparent hover:border-stone-200 rounded-full">
+                            <i data-lucide="mail" class="w-6 h-6" stroke-width="1.5"></i>
+                        </a>
+                        <a href="#" class="p-2 text-stone-500 hover:text-black transition-colors border border-transparent hover:border-stone-200 rounded-full">
+                            <i data-lucide="linkedin" class="w-6 h-6" stroke-width="1.5"></i>
+                        </a>
+                        <div class="p-2 text-stone-400 border border-transparent rounded-full cursor-default">
+                            <i data-lucide="map-pin" class="w-6 h-6" stroke-width="1.5"></i>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- 3. Bio: Instrument Serif, 16-18px (text-lg) -->
+                <div class="pt-8 border-t border-stone-100 w-full">
+                    <p class="text-lg md:text-xl leading-relaxed text-stone-600 font-normal">
+                        <span class="text-black italic">Data-driven product leader</span> with proven track record across <span class="text-black italic">$900M TurboTax, $800M Ancestry, and global eBay marketplace</span>. Currently CEO of $3M e-commerce business. Deep expertise in <span class="text-black italic">Product-Led Growth, AI/ML products, and conversion optimization</span>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Metrics Grid -->
+            <section class="grid grid-cols-2 gap-4 animate-sequence" style="animation-delay: 0.2s;">
+                <div class="secondary-card p-6 text-center rounded-xl group">
+                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">$100M+</div>
+                    <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">Business Lift</div>
+                </div>
+                <div class="secondary-card p-6 text-center rounded-xl group">
+                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">4+</div>
+                    <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">AI Products</div>
+                </div>
+                <div class="secondary-card p-6 text-center rounded-xl group">
+                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">40%</div>
+                    <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">Cost Reduction</div>
+                </div>
+                <div class="secondary-card p-6 text-center rounded-xl group">
+                    <div class="text-4xl font-heading font-medium text-black mb-2 group-hover:scale-105 transition-transform duration-500">30%</div>
+                    <div class="text-sm font-normal text-stone-500 uppercase tracking-widest">Mobile Lift</div>
+                </div>
+            </section>
+
+            <!-- Experience Section -->
+            <section id="experience" class="space-y-8 animate-sequence" style="animation-delay: 0.4s;">
+                <div class="flex items-center justify-center gap-4 py-6">
+                    <div class="h-px bg-stone-300 w-16"></div>
+                    <h3 class="text-2xl font-heading font-semibold text-black tracking-wide">Professional Experience</h3>
+                    <div class="h-px bg-stone-300 w-16"></div>
+                </div>
+
+                <!-- Job Card 1 -->
+                <div class="secondary-card p-8 rounded-xl group">
+                    <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4 gap-2 border-b border-stone-100 pb-4">
+                        <div>
+                            <h4 class="text-2xl font-heading font-medium text-black tracking-wide">Principal Product Manager - AI/ML</h4>
+                            <div class="flex items-center gap-3 mt-2">
+                                <img src="https://logo.clearbit.com/intuit.com" class="w-6 h-6 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Intuit" onerror="this.style.display='none'">
+                                <div class="text-stone-500 text-lg italic">Intuit - TurboTax Self-Employed</div>
+                            </div>
+                        </div>
+                        <span class="text-sm font-normal text-stone-500 uppercase tracking-wider">2021 - 2024</span>
+                    </div>
+                    <p class="text-lg text-stone-600 mb-6 italic">Led $900M business serving 4M+ solopreneurs. Delivered 10-15% CAGR.</p>
+                    <ul class="space-y-4">
+                        <li class="flex gap-4 text-lg text-stone-600">
+                            <i data-lucide="sparkles" class="w-5 h-5 text-black shrink-0 mt-1" stroke-width="1.5"></i>
+                            <span><strong class="font-normal text-black underline decoration-stone-300">AI Innovation:</strong> Shipped 4 AI products: Expense Categorization (60% less manual entry), Deduction Finder ML, Audit Risk Predictor.</span>
+                        </li>
+                        <li class="flex gap-4 text-lg text-stone-600">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-black shrink-0 mt-1" stroke-width="1.5"></i>
+                            <span><strong class="font-normal text-black underline decoration-stone-300">PLG Strategy:</strong> Drove pure Product-Led Growth motion with zero sales team, optimizing freemium funnels.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Job Card 2 -->
+                <div class="secondary-card p-8 rounded-xl group">
+                    <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4 gap-2 border-b border-stone-100 pb-4">
+                        <div>
+                            <h4 class="text-2xl font-heading font-medium text-black tracking-wide">CEO - AI Transformation</h4>
+                            <div class="flex items-center gap-3 mt-2">
+                                <img src="https://logo.clearbit.com/sketchpop.com" class="w-6 h-6 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="SketchPop" onerror="this.style.display='none'">
+                                <div class="text-stone-500 text-lg italic">SketchPop LLC</div>
+                            </div>
+                        </div>
+                        <span class="text-sm font-normal text-stone-500 uppercase tracking-wider">2018 - Present</span>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex gap-4 text-lg text-stone-600">
+                            <i data-lucide="bot" class="w-5 h-5 text-black shrink-0 mt-1" stroke-width="1.5"></i>
+                            <span><strong class="font-normal text-black underline decoration-stone-300">AI Operations:</strong> Deployed AI chatbot (40% cost cut) and AI demand forecasting.</span>
+                        </li>
+                        <li class="flex gap-4 text-lg text-stone-600">
+                            <i data-lucide="zap" class="w-5 h-5 text-black shrink-0 mt-1" stroke-width="1.5"></i>
+                            <span><strong class="font-normal text-black underline decoration-stone-300">Growth:</strong> Doubled order volume with same headcount through AI automation.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Past Roles Compact -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="secondary-card p-6 rounded-xl group">
+                        <div class="flex justify-between items-baseline mb-2">
+                            <h4 class="text-xl font-heading font-medium text-black tracking-wide">GrowthAlchemyLab</h4>
+                            <span class="text-sm text-stone-500">2024-Pres</span>
+                        </div>
+                        <div class="flex items-center gap-2 mb-3">
+                             <img src="https://logo.clearbit.com/growthalchemylab.com" class="w-5 h-5 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="GrowthAlchemy" onerror="this.style.display='none'">
+                             <div class="text-sm text-stone-500 uppercase tracking-wider">Founder</div>
+                        </div>
+                        <p class="text-lg text-stone-600">Advising on AI roadmap &amp; metrics.</p>
+                    </div>
+                    <div class="secondary-card p-6 rounded-xl group">
+                        <div class="flex justify-between items-baseline mb-2">
+                            <h4 class="text-xl font-heading font-medium text-black tracking-wide">Ancestry</h4>
+                            <span class="text-sm text-stone-500">2016-2017</span>
+                        </div>
+                        <div class="flex items-center gap-2 mb-3">
+                             <img src="https://logo.clearbit.com/ancestry.com" class="w-5 h-5 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="Ancestry" onerror="this.style.display='none'">
+                             <div class="text-sm text-stone-500 uppercase tracking-wider">Director of Product</div>
+                        </div>
+                        <p class="text-lg text-stone-600">Mobile Growth, 30% subscription lift.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Competencies -->
+            <section id="competencies" class="space-y-8 animate-sequence" style="animation-delay: 0.6s;">
+                 <div class="flex items-center justify-center gap-4 py-6">
+                    <div class="h-px bg-stone-300 w-16"></div>
+                    <h3 class="text-2xl font-heading font-semibold text-black tracking-wide">Competencies</h3>
+                    <div class="h-px bg-stone-300 w-16"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div class="secondary-card p-6 rounded-xl">
+                        <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
+                            <i data-lucide="cpu" class="w-5 h-5 text-black" stroke-width="1.5"></i> AI/ML &amp; Tech
+                        </h5>
+                        <p class="text-lg text-stone-600">LLMs (GPT-4, Claude), HITL, AI Ops, Prompt Engineering, ML Product Mgmt.</p>
+                    </div>
+                    <div class="secondary-card p-6 rounded-xl">
+                        <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
+                            <i data-lucide="layers" class="w-5 h-5 text-black" stroke-width="1.5"></i> Strategy
+                        </h5>
+                        <p class="text-lg text-stone-600">PLG, Cross-Functional Leadership, P&amp;L Mgmt, GTM Strategy.</p>
+                    </div>
+                    <div class="secondary-card p-6 rounded-xl">
+                        <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
+                            <i data-lucide="bar-chart-2" class="w-5 h-5 text-black" stroke-width="1.5"></i> Analytics
+                        </h5>
+                        <p class="text-lg text-stone-600">A/B Testing, Cohort Analysis, Funnel Optimization, SQL.</p>
+                    </div>
+                    <div class="secondary-card p-6 rounded-xl">
+                        <h5 class="text-xl font-heading font-medium text-black mb-3 flex items-center gap-2 tracking-wide">
+                            <i data-lucide="users" class="w-5 h-5 text-black" stroke-width="1.5"></i> Consumer
+                        </h5>
+                        <p class="text-lg text-stone-600">Freemium Models, E-commerce, Subscriptions, Retention.</p>
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <div class="secondary-card p-8 rounded-xl flex flex-col md:flex-row gap-8 justify-between items-center text-center md:text-left">
+                    <div>
+                        <h4 class="text-xl font-heading font-medium text-black tracking-wide">MBA &amp; MS</h4>
+                        <div class="text-stone-500 text-lg">University of Michigan (Ross &amp; SEAS)</div>
+                    </div>
+                    <div class="hidden md:block h-8 w-px bg-stone-300"></div>
+                     <div>
+                        <h4 class="text-xl font-heading font-medium text-black tracking-wide">BS Electrical Engineering</h4>
+                        <div class="text-stone-500 text-lg">University of Virginia</div>
+                    </div>
+                </div>
+            </section>
+
         </div>
-    </div>
+    </main>
 
     <script>
-        // Replace placeholder with actual LinkedIn photo
-        // You can update this URL with your actual LinkedIn photo URL
-        const photoUrl = 'https://media.licdn.com/dms/image/v2/D5603AQFLhrcVCSYY8w/profile-displayphoto-shrink_800_800/B56ZX04IgtHQAg-/0/1743570110941?e=1766620800&v=beta&t=9KHaWvyX8UvAxH_yLT7FD15TObn3kZgtfQP1A3j7m1o';
-        document.querySelector('.profile-photo').src = photoUrl;
+        lucide.createIcons();
     </script>
-</body>
-</html>
+
+</body></html>
