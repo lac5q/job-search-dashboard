@@ -11,7 +11,12 @@
     
     <style>
         /* Typography Mapping */
-        body { font-family: 'Instrument Serif', serif; }
+        body { 
+            font-family: 'Instrument Serif', serif; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
         h1, h2, h3, h4, h5, .font-heading { font-family: 'PT Serif', serif; }
         
         /* Custom Scrollbar Stone */
@@ -1401,7 +1406,21 @@
             }, focusOptions);
 
             const cards = document.querySelectorAll('.flip-card');
-            cards.forEach(card => focusObserver.observe(card));
+            cards.forEach(card => {
+                focusObserver.observe(card);
+                
+                // Add click event for flipping
+                card.addEventListener('click', function(e) {
+                    // Avoid double toggling if clicking the button which also has a handler
+                    if (e.target.closest('.flip-btn')) return; // Button handles it or propagates?
+                    // Actually, let's let the card handle it generally.
+                    // If clicking close button, stop propagation is handled inline.
+                    
+                    if (!this.classList.contains('flipped')) {
+                        this.classList.add('flipped');
+                    }
+                });
+            });
         });
     </script>
 
