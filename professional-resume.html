@@ -331,7 +331,7 @@
                                 </a>
                                 <!-- Map Overlay Tooltip -->
                                 <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 h-32 bg-white rounded-lg shadow-xl border border-stone-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 pointer-events-none">
-                                    <img src="https://maps.googleapis.com/maps/api/staticmap?center=San+Diego,CA&zoom=11&size=200x150&maptype=roadmap&sensor=false&key=YOUR_API_KEY" alt="San Diego Map" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1512662058444-2cb79c533276?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'"> <!-- Fallback to generic if API key fails, used SD related image or placeholder. Using a static placeholder for now as I don't have an API key. -->
+                                    <img src="https://images.unsplash.com/photo-1534234828563-02531853a445?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="San Diego Map" class="w-full h-full object-cover">
                                     <div class="absolute inset-0 bg-black/10"></div>
                                     <div class="absolute bottom-0 left-0 right-0 bg-white/90 px-2 py-1 text-center text-xs font-semibold text-stone-700">San Diego, CA</div>
                                 </div>
@@ -339,7 +339,7 @@
                         </div>
 
                         <!-- Download Resume Link -->
-                        <a href="resume.html" class="flex items-center gap-2 text-stone-400 hover:text-black transition-colors text-sm uppercase tracking-widest font-medium group">
+                        <a href="resume.html" target="_blank" class="flex items-center gap-2 text-stone-400 hover:text-black transition-colors text-sm uppercase tracking-widest font-medium group" title="Open Printable Resume">
                             <i data-lucide="download" class="w-4 h-4 group-hover:animate-bounce"></i>
                             <span>Download Resume PDF</span>
                         </a>
