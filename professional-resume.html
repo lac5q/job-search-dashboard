@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <!-- Importing PT Serif (Headings) and Instrument Serif (Body) -->
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=PT+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet">
     
     <style>
         /* Typography Mapping */
@@ -16,12 +16,21 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
-            letter-spacing: 0.03em; /* Opened up spacing */
+            font-optical-sizing: auto; /* Improve rendering */
+            letter-spacing: 0.03em;
+            font-size: 1.15rem; /* Slight bump */
+            color: #1c1917; /* High contrast black/brown */
         }
         h1, h2, h3, h4, h5, .font-heading { 
             font-family: 'Instrument Serif', serif; 
             letter-spacing: 0.02em;
+            color: #000000; /* Pure black for headings */
         }
+        
+        /* High Contrast Overrides */
+        .text-stone-600 { color: #292524 !important; } /* Darker stone */
+        .text-stone-500 { color: #44403c !important; } /* Darker stone */
+        .text-stone-400 { color: #78716c !important; } /* Keep meta info slightly lighter but legible */
         
         /* Custom Scrollbar Stone */
         ::-webkit-scrollbar { width: 6px; }
@@ -1364,12 +1373,37 @@
         function toggleEarlyCareer() {
             const list = document.getElementById('early-career-list');
             const icon = document.getElementById('early-career-icon');
-            list.classList.toggle('open');
-            icon.classList.toggle('rotate-180');
+
+            if (list.classList.contains('open')) {
+                list.classList.remove('open');
+                icon.classList.remove('rotate-180');
+                list.style.maxHeight = '0';
+                list.style.opacity = '0';
+                // Set display to none after transition completes
+                list.addEventListener('transitionend', function handler() {
+                    list.style.display = 'none';
+                    list.removeEventListener('transitionend', handler);
+                });
+            } else {
+                list.style.display = 'block'; // Show immediately for transition
+                // Force reflow to ensure display: block is applied before transition
+                list.offsetHeight; 
+                list.classList.add('open');
+                icon.classList.add('rotate-180');
+                list.style.maxHeight = list.scrollHeight + 'px';
+                list.style.opacity = '1';
+            }
         }
 
-        // Intersection Observer for "Unveiling" Animations
+        // Set initial state for early career list
         document.addEventListener("DOMContentLoaded", function() {
+            const earlyCareerList = document.getElementById('early-career-list');
+            if (earlyCareerList) {
+                earlyCareerList.style.maxHeight = '0';
+                earlyCareerList.style.opacity = '0';
+                earlyCareerList.style.display = 'none';
+            }
+
             // 1. Reveal on scroll (Entrance)
             const revealOptions = {
                 root: null,
