@@ -947,6 +947,19 @@
             </div>
         </div>
 
+        <div class="section-title">Connection Degree</div>
+        <div class="filter-group" id="degreeFilters">
+            <button class="filter-btn active" data-degree="all">All</button>
+            <button class="filter-btn" data-degree="1">1st Degree</button>
+            <button class="filter-btn" data-degree="2">2nd Degree+</button>
+        </div>
+
+        <div class="section-title">Review Status</div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <input type="checkbox" id="showReviewed" style="accent-color: #6366f1; width: 16px; height: 16px; cursor: pointer;">
+            <label for="showReviewed" style="font-size: 0.8rem; color: #94a3b8; cursor: pointer;">Show Reviewed Contacts</label>
+        </div>
+
         <div class="section-title">Filter Companies <span class="info-tip" onclick="showTooltip('companies')">?</span></div>
         <div class="company-filter-container">
             <div class="company-filter-header">
@@ -1098,6 +1111,7 @@
             <a class="action-btn primary" id="linkedinLink" href="#" target="_blank">LinkedIn</a>
             <button class="action-btn secondary" onclick="addToCRM()">+ CRM</button>
             <button class="action-btn secondary" onclick="generateEmail()" style="background: linear-gradient(135deg, #667eea, #764ba2);">✉ Email</button>
+            <button class="action-btn secondary" onclick="toggleReviewed()" id="reviewBtn" style="background: rgba(255, 255, 255, 0.1);">👁️ Mark Reviewed</button>
         </div>
     </div>
 
@@ -1185,6 +1199,9 @@
         let currentCompanyFilter = 'all';
         let currentPriorityFilter = 0;
         let currentCompanyTier = 5; // 1-5, where 5 means "all tiers"
+        let currentDegreeFilter = 'all';
+        let showReviewedContacts = false;
+        let reviewedContacts = new Set(JSON.parse(localStorage.getItem('reviewedContacts') || '[]'));
         let currentView = 'galaxy';
         let selectedNode = null;
         let isRotating = true;
@@ -1374,6 +1391,22 @@
                     if (!contact.companyInfo) return false;
                     if (contact.companyInfo.tier > currentCompanyTier) return false;
                 }
+
+                // Connection Degree Filter
+                if (currentDegreeFilter !== 'all') {
+                    // Heuristic: Connections.csv usually contains only 1st degree.
+                    // But if data comes from other sources, check 'Connected On'.
+                    const isFirstDegree = !!contact['Connected On'];
+                    if (currentDegreeFilter === '1' && !isFirstDegree) return false;
+                    if (currentDegreeFilter === '2' && isFirstDegree) return false;
+                }
+
+                // Reviewed Status Filter
+                const contactId = `${contact['First Name']}-${contact['Last Name']}-${contact.Company}`;
+                const isReviewed = reviewedContacts.has(contactId);
+                
+                // If "Show Reviewed" is UNCHECKED (false), hide reviewed contacts
+                if (!showReviewedContacts && isReviewed) return false;
 
                 // Search filter
                 const searchTerm = document.getElementById('searchBox').value.toLowerCase();
@@ -1570,6 +1603,47 @@
             });
         });
 
+        // Degree Filter
+        document.querySelectorAll('.filter-btn[data-degree]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn[data-degree]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentDegreeFilter = this.dataset.degree;
+                createNodes();
+            });
+        });
+
+        // Reviewed Checkbox
+        document.getElementById('showReviewed').addEventListener('change', function() {
+            showReviewedContacts = this.checked;
+            createNodes();
+        });
+
+        // Toggle Reviewed Status
+        function toggleReviewed() {
+            if (!selectedNode) return;
+            const contact = selectedNode.userData;
+            const contactId = `${contact['First Name']}-${contact['Last Name']}-${contact.Company}`;
+            
+            if (reviewedContacts.has(contactId)) {
+                reviewedContacts.delete(contactId);
+                document.getElementById('reviewBtn').textContent = '👁️ Mark Reviewed';
+                document.getElementById('reviewBtn').style.background = 'rgba(255, 255, 255, 0.1)';
+            } else {
+                reviewedContacts.add(contactId);
+                document.getElementById('reviewBtn').textContent = '✅ Reviewed';
+                document.getElementById('reviewBtn').style.background = 'rgba(16, 185, 129, 0.2)';
+                document.getElementById('reviewBtn').style.color = '#34d399';
+            }
+            
+            localStorage.setItem('reviewedContacts', JSON.stringify([...reviewedContacts]));
+            
+            if (!showReviewedContacts) {
+               createNodes();
+               closeInfoPanel();
+            }
+        }
+
         // Priority slider handler
         const prioritySlider = document.getElementById('prioritySlider');
         const sliderValue = document.getElementById('sliderValue');
@@ -1739,6 +1813,21 @@
                 if (contact.companyInfo.category) {
                     tagsContainer.innerHTML += `<span class="tag" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">${contact.companyInfo.category}</span>`;
                 }
+            }
+
+            // Check reviewed status
+            const contactId = `${contact['First Name']}-${contact['Last Name']}-${contact.Company}`;
+            const isReviewed = reviewedContacts.has(contactId);
+            const reviewBtn = document.getElementById('reviewBtn');
+            
+            if (isReviewed) {
+                reviewBtn.textContent = '✅ Reviewed';
+                reviewBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+                reviewBtn.style.color = '#34d399';
+            } else {
+                reviewBtn.textContent = '👁️ Mark Reviewed';
+                reviewBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                reviewBtn.style.color = '#a5b4fc';
             }
 
             panel.classList.add('visible');
