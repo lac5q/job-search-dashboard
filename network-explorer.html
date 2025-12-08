@@ -864,7 +864,7 @@
 
     <!-- Control Panel -->
     <div class="control-panel">
-        <h1>Network Explorer</h1>
+        <h1>Network Explorer <span style="font-size: 1rem; cursor: pointer; opacity: 0.7; float: right;" onclick="document.getElementById('configModal').classList.add('visible')" title="Configure Scoring">⚙️</span></h1>
         <div class="subtitle">3D Spatial Navigation</div>
 
         <div class="stats-grid">
@@ -922,6 +922,21 @@
                 <span>All</span>
                 <span>Medium (40+)</span>
                 <span>High (70+)</span>
+            </div>
+        </div>
+
+        <div class="section-title">Service Potential <span class="info-tip" onclick="showTooltip('service')">?</span></div>
+        <div class="slider-container">
+            <div class="slider-header">
+                <span>Min Potential:</span>
+                <span class="slider-value" id="serviceValue">All</span>
+            </div>
+            <input type="range" min="0" max="3" value="0" class="priority-slider" id="serviceSlider" style="background: linear-gradient(to right, #64748b 0%, #34d399 100%);">
+            <div class="slider-labels">
+                <span>All</span>
+                <span>Low</span>
+                <span>Med</span>
+                <span>High</span>
             </div>
         </div>
 
@@ -1017,6 +1032,25 @@
             <span>Big Tech - Google, Meta, Amazon, Apple, Microsoft</span>
         </div>
         <p style="margin-top: 15px;"><strong>Color coding:</strong> Red (70+), Purple (40-69), Gray (&lt;40)</p>
+    </div>
+
+    <!-- Service Potential Tooltip -->
+    <div class="tooltip-popup" id="tooltipService">
+        <button class="close-tip" onclick="hideTooltip()">&times;</button>
+        <h3>Service Potential</h3>
+        <p>How much value can you offer them?</p>
+        <div class="tier-row">
+            <span class="tier-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">High</span>
+            <span><strong>Founders & Early Stage</strong> - Need strategic advice, scaling help.</span>
+        </div>
+        <div class="tier-row">
+            <span class="tier-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">Medium</span>
+            <span><strong>Mid-Level PMs</strong> - Need mentorship and coaching.</span>
+        </div>
+        <div class="tier-row">
+            <span class="tier-badge" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc;">Low</span>
+            <span><strong>Recruiters & Talent</strong> - Transactional relationship.</span>
+        </div>
     </div>
 
     <!-- Company Tier Tooltip -->
@@ -1187,6 +1221,29 @@
         </div>
     </div>
 
+    <!-- Config Modal -->
+    <div class="help-modal" id="configModal" onclick="if(event.target === this) this.classList.remove('visible')">
+        <div class="help-content" style="max-width: 500px;">
+            <h2>Scoring Configuration</h2>
+            <p>Adjust the points assigned to each criteria for the Priority Score.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 80px; gap: 10px; align-items: center; margin-bottom: 20px;">
+                <label>Ross Alumni</label> <input type="number" id="weight-ross" value="50" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>CEO/Founder</label> <input type="number" id="weight-ceo" value="30" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>Target Company (Tier 1-2)</label> <input type="number" id="weight-target" value="30" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>VP Level</label> <input type="number" id="weight-vp" value="25" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>Product Manager</label> <input type="number" id="weight-pm" value="20" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>Director Level</label> <input type="number" id="weight-director" value="15" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>Big Tech</label> <input type="number" id="weight-bigtech" value="15" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="document.getElementById('configModal').classList.remove('visible')" style="padding: 10px 20px; background: transparent; color: #94a3b8; border: 1px solid #444; border-radius: 8px; cursor: pointer;">Cancel</button>
+                <button onclick="saveConfig()" style="padding: 10px 20px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer;">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="connections-data.js"></script>
     <script src="target-companies.js"></script>
@@ -1200,12 +1257,24 @@
         let currentPriorityFilter = 0;
         let currentCompanyTier = 5; // 1-5, where 5 means "all tiers"
         let currentDegreeFilter = 'all';
+        let currentServiceFilter = 0; // 0=All, 1=Low, 2=Med, 3=High
         let showReviewedContacts = false;
         let reviewedContacts = new Set(JSON.parse(localStorage.getItem('reviewedContacts') || '[]'));
         let currentView = 'galaxy';
         let selectedNode = null;
         let isRotating = true;
         let rotationSpeed = 0.0005;
+
+        // Configurable Weights
+        let SCORING_WEIGHTS = {
+            ross: 50,
+            ceo: 30,
+            target: 30,
+            vp: 25,
+            pm: 20,
+            director: 15,
+            bigtech: 15
+        };
 
         // Initialize Three.js scene
         function initScene() {
@@ -1262,39 +1331,67 @@
             const stars = new THREE.Points(starGeometry, starMaterial);
             scene.add(stars);
         }
+        
+        // Calculate Service Potential Score (How much can I help them?)
+        function calculateServiceScore(contact) {
+            let score = 0; // 0=None/Unknown, 1=Low, 2=Med, 3=High
+            
+            const position = (contact.Position || '').toLowerCase();
+            const companyInfo = contact.companyInfo;
+            
+            // High Potential: Founders/CEOs (need strategy), Early Stage Companies
+            if (contact.isCEO || contact.isFounder) {
+                score = 3;
+            } else if (companyInfo && companyInfo.tier <= 2) { 
+                // Tier 1/2 companies are often high growth/tech focus
+                score = 3;
+            }
+            
+            // Medium Potential: PMs/Directors (need mentoring/coaching)
+            else if (contact.isPM || contact.isDirector || contact.isVP) {
+                score = 2;
+            }
+            
+            // Low Potential: Recruiters (transactional), Big Corps (hard to influence)
+            else if (position.includes('recruiter') || position.includes('talent')) {
+                score = 1;
+            }
+            
+            contact.serviceScore = score;
+            return score;
+        }
 
         // Calculate priority score for a contact
         function calculateScore(contact) {
             let score = 0;
             const position = (contact.Position || '').toLowerCase();
             const company = (contact.Company || '').toLowerCase();
-            const firstName = (contact['First Name'] || '').toLowerCase();
-            const lastName = (contact['Last Name'] || '').toLowerCase();
 
             // Ross/Michigan bonus
             if (company.includes('michigan') || company.includes('ross') ||
                 position.includes('michigan') || position.includes('ross')) {
-                score += 50;
+                score += SCORING_WEIGHTS.ross;
                 contact.isRoss = true;
             }
 
             // Title bonuses
             if (position.includes('vp') || position.includes('vice president')) {
-                score += 25;
+                score += SCORING_WEIGHTS.vp;
                 contact.isVP = true;
             }
             if (position.includes('director')) {
-                score += 15;
+                score += SCORING_WEIGHTS.director;
                 contact.isDirector = true;
             }
             if (position.includes('ceo') || position.includes('chief executive') ||
                 position.includes('founder') || position.includes('co-founder')) {
-                score += 30;
+                score += SCORING_WEIGHTS.ceo;
                 contact.isCEO = true;
+                contact.isFounder = true; // Helper
             }
             if (position.includes('product') && (position.includes('manager') ||
                 position.includes('management') || position.includes('lead'))) {
-                score += 20;
+                score += SCORING_WEIGHTS.pm;
                 contact.isPM = true;
             }
 
@@ -1311,15 +1408,18 @@
                     contact.isTarget = companyInfo.score >= 80; // Tier 1 & 2
 
                     // Add company match score to overall score (scaled)
-                    // Tier 1 (100) = +40 pts, Tier 2 (80) = +32 pts, Tier 3 (60) = +24 pts, etc.
-                    score += Math.round(companyInfo.score * 0.4);
+                    if (contact.isTarget) {
+                         score += SCORING_WEIGHTS.target; // Base target bonus
+                         // Plus tier bonus? Let's keep it simple for now or scale it.
+                         // Keeping it simple based on config weight.
+                    }
                 }
             } else {
-                // Fallback to basic target company check
+                // Fallback
                 const basicTargets = ['stripe', 'openai', 'anthropic', 'figma', 'notion', 'linear',
                     'vercel', 'datadog', 'snowflake', 'databricks', 'airtable'];
                 if (basicTargets.some(t => company.includes(t))) {
-                    score += 30;
+                    score += SCORING_WEIGHTS.target;
                     contact.isTarget = true;
                     contact.companyMatchScore = 80;
                 }
@@ -1327,13 +1427,31 @@
                 // Big tech bonus
                 const bigTech = ['google', 'meta', 'amazon', 'apple', 'microsoft', 'netflix'];
                 if (bigTech.some(t => company.includes(t))) {
-                    score += 15;
+                    score += SCORING_WEIGHTS.bigtech;
                     contact.companyMatchScore = 40;
                 }
             }
+            
+            // Calculate Service Score (Secondary)
+            calculateServiceScore(contact);
 
             contact.score = score;
             return score;
+        }
+
+        function saveConfig() {
+            SCORING_WEIGHTS.ross = parseInt(document.getElementById('weight-ross').value) || 0;
+            SCORING_WEIGHTS.ceo = parseInt(document.getElementById('weight-ceo').value) || 0;
+            SCORING_WEIGHTS.target = parseInt(document.getElementById('weight-target').value) || 0;
+            SCORING_WEIGHTS.vp = parseInt(document.getElementById('weight-vp').value) || 0;
+            SCORING_WEIGHTS.pm = parseInt(document.getElementById('weight-pm').value) || 0;
+            SCORING_WEIGHTS.director = parseInt(document.getElementById('weight-director').value) || 0;
+            SCORING_WEIGHTS.bigtech = parseInt(document.getElementById('weight-bigtech').value) || 0;
+            
+            // Recalculate
+            contacts.forEach(c => calculateScore(c));
+            createNodes();
+            document.getElementById('configModal').classList.remove('visible');
         }
 
         // Get color based on contact properties
@@ -1384,6 +1502,11 @@
 
                 // Priority filter (now uses slider value as minimum score)
                 if (typeof currentPriorityFilter === 'number' && contact.score < currentPriorityFilter) return false;
+
+                // Service Potential Filter
+                if (currentServiceFilter > 0) {
+                    if ((contact.serviceScore || 0) < currentServiceFilter) return false;
+                }
 
                 // Target company filter - show only contacts at companies within selected tier
                 if (currentCompanyTier < 5) {
@@ -1652,6 +1775,18 @@
             const value = parseInt(this.value);
             sliderValue.textContent = value === 0 ? 'All' : value + '+';
             currentPriorityFilter = value;
+            createNodes();
+        });
+
+        // Service Potential slider handler
+        const serviceSlider = document.getElementById('serviceSlider');
+        const serviceValue = document.getElementById('serviceValue');
+
+        serviceSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            const labels = {0: 'All', 1: 'Low+', 2: 'Med+', 3: 'High Only'};
+            serviceValue.textContent = labels[value];
+            currentServiceFilter = value;
             createNodes();
         });
 
