@@ -1062,6 +1062,35 @@
             <span style="color: #64748b; font-size: 0.8rem;">Priority Score:</span>
             <span class="score-badge score-high" id="contactScore">85</span>
         </div>
+        <div style="margin: 15px 0; border-top: 1px solid rgba(99, 102, 241, 0.2); padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 0.8rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 1px;">Intelligence</span>
+            </div>
+            
+            <div id="aiInsightsPlaceholder" style="display: block;">
+                <button onclick="analyzeContact()" style="width: 100%; padding: 8px; background: rgba(99, 102, 241, 0.1); border: 1px border: 1px dashed rgba(99, 102, 241, 0.4); color: #a5b4fc; border-radius: 8px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                    <span>✨</span> Analyze Contact & Company
+                </button>
+            </div>
+
+            <div id="aiInsightsResult" style="display: none; font-size: 0.85rem; color: #cbd5e1;">
+                <div style="margin-bottom: 12px;">
+                    <div style="color: #818cf8; font-weight: 600; margin-bottom: 4px;">Why Reach Out?</div>
+                    <div id="insightHook" style="line-height: 1.4;"></div>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                    <div style="color: #818cf8; font-weight: 600; margin-bottom: 4px;">Talking Points</div>
+                    <ul id="insightPoints" style="margin: 0; padding-left: 20px; color: #94a3b8;"></ul>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <a id="newsLinkCompany" href="#" target="_blank" style="flex: 1; text-align: center; padding: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; color: #cbd5e1; text-decoration: none; font-size: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.1);">📰 Company News</a>
+                    <a id="newsLinkPerson" href="#" target="_blank" style="flex: 1; text-align: center; padding: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; color: #cbd5e1; text-decoration: none; font-size: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.1);">🔍 Person Search</a>
+                </div>
+            </div>
+        </div>
+
         <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">
             Connected: <span id="contactConnected">Dec 2025</span>
         </div>
@@ -1655,9 +1684,17 @@
         // Show contact info panel
         function showContactInfo(contact) {
             const panel = document.getElementById('infoPanel');
+            
+            // Reset Analysis Panel
+            document.getElementById('aiInsightsPlaceholder').style.display = 'block';
+            document.getElementById('aiInsightsResult').style.display = 'none';
+            document.querySelector('#aiInsightsPlaceholder button').innerHTML = '<span>✨</span> Analyze Contact & Company';
+
             const initials = `${(contact['First Name'] || 'U')[0]}${(contact['Last Name'] || 'N')[0]}`;
 
             document.getElementById('contactAvatar').textContent = initials;
+            // ... (rest of function remains same, I will target the start to inject this reset logic at the top of showContactInfo)
+
             document.getElementById('contactAvatar').style.background = `linear-gradient(135deg, #${getNodeColor(contact).toString(16).padStart(6, '0')}, #8b5cf6)`;
             document.getElementById('contactName').textContent = `${contact['First Name']} ${contact['Last Name']}`;
             document.getElementById('contactTitle').textContent = contact.Position || 'No title';
@@ -1705,6 +1742,65 @@
             }
 
             panel.classList.add('visible');
+        }
+
+        // Simulate AI Analysis
+        function analyzeContact() {
+            if (!selectedNode) return;
+            const contact = selectedNode.userData;
+            const btn = document.querySelector('#aiInsightsPlaceholder button');
+            
+            btn.innerHTML = '<span>⏳</span> Analyzing...';
+            
+            setTimeout(() => {
+                // Generate Content
+                const firstName = contact['First Name'] || 'Use';
+                const company = contact.Company || 'their company';
+                const title = contact.Position || 'Role';
+                
+                let hook = "";
+                let points = [];
+
+                // 1. Generate Hook
+                if (contact.isRoss) {
+                    hook = `Fellow <strong>Ross Alumni</strong> at ${company}. Leverage the Michigan connection to ask for a warm intro or coffee chat.`;
+                } else if (contact.isTarget) {
+                    hook = `Key contact at <strong>${company}</strong> (Target Tier ${contact.companyInfo?.tier || '?'}). ${title} role aligns with your PLG/AI focus.`;
+                } else if (contact.score >= 70) {
+                    hook = `High priority contact (${title}) at ${company}. Strong potential for referral or hiring authority.`;
+                } else {
+                    hook = `${title} at ${company}. Good for informational interview or industry insights.`;
+                }
+
+                // 2. Generate Points
+                if (company.toLowerCase().includes('intuit')) {
+                    points.push("Discuss your 3+ years driving PLG at TurboTax.");
+                    points.push("Ask about recent AI integration in their products.");
+                } else if (title.toLowerCase().includes('product')) {
+                    points.push("Share your experience scaling products to $900M.");
+                    points.push("Ask about their current product roadmap challenges.");
+                } else if (title.toLowerCase().includes('founder') || title.toLowerCase().includes('ceo')) {
+                    points.push("Mention your success scaling SketchPop to $3M.");
+                    points.push("Discuss AI operational efficiency strategies.");
+                } else {
+                    points.push("Ask about company culture and recent shifts.");
+                    points.push("Inquire about their team structure.");
+                }
+                
+                // 3. Update UI
+                document.getElementById('insightHook').innerHTML = hook;
+                
+                const pointsHtml = points.map(p => `<li>${p}</li>`).join('');
+                document.getElementById('insightPoints').innerHTML = pointsHtml;
+
+                document.getElementById('newsLinkCompany').href = `https://www.google.com/search?q=${encodeURIComponent(company)}+news&tbm=nws`;
+                document.getElementById('newsLinkPerson').href = `https://www.google.com/search?q=${encodeURIComponent(firstName + ' ' + contact['Last Name'] + ' ' + company)}`;
+
+                // Show Results
+                document.getElementById('aiInsightsPlaceholder').style.display = 'none';
+                document.getElementById('aiInsightsResult').style.display = 'block';
+                
+            }, 800); // Fake delay
         }
 
         function closeInfoPanel() {
