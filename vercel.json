@@ -8,6 +8,18 @@
     {
       "src": "**/*.js",
       "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.pdf",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.{jpg,jpeg,png,gif,svg,ico}",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.{css,json,csv}",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
