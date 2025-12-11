@@ -424,6 +424,7 @@
         }
     </style>
     <script src="sync-manager.js"></script>
+    <script src="gmail-client.js"></script>
 </head>
 <body>
     <div class="container">
@@ -434,6 +435,9 @@
                     <p>Intelligent tools to accelerate your job search with AI</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
+                    <button id="gmail-connect-btn" onclick="toggleGmailConnection()" style="background: rgba(255,255,255,0.1); color: white; padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        <span id="gmail-status-icon">📧</span> <span id="gmail-status-text">Connect Gmail</span>
+                    </button>
                     <a href="network-explorer.html" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">🌐 Network Explorer</a>
                     <a href="job-search-dashboard.html" style="background: rgba(255,255,255,0.1); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">← Dashboard</a>
                 </div>
@@ -512,6 +516,12 @@
                             <input type="text" id="contact-company" placeholder="e.g., Stripe">
                         </div>
                         <div class="form-group">
+                            <label>Email (for Gmail context)</label>
+                            <input type="email" id="contact-email" placeholder="e.g., sarah@stripe.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label>Connection Type</label>
                             <select id="connection-type">
                                 <option value="ross-alumni">Ross Alumni</option>
@@ -576,6 +586,7 @@
                         <span class="placeholder">Your personalized message will appear here...</span>
                     </div>
                     <button class="copy-btn hidden" id="copy-outreach" onclick="copyOutput('outreach-output')">Copy</button>
+                    <button class="copy-btn hidden" id="send-email-btn" onclick="sendEmailDirect()" style="background: linear-gradient(135deg, #34c759 0%, #30a14e 100%); margin-left: 10px;">📧 Send Email</button>
                 </div>
             </div>
 
@@ -951,6 +962,8 @@
 
         async function generateOutreach() {
             let contactInfo = '';
+            let name = '';
+            let email = '';
 
             if (outreachMode === 'linkedin') {
                 const linkedinText = document.getElementById('linkedin-paste').value;
@@ -960,9 +973,10 @@
                 }
                 contactInfo = `LinkedIn Profile Info:\n${linkedinText}`;
             } else {
-                const name = document.getElementById('contact-name').value;
+                name = document.getElementById('contact-name').value;
                 const title = document.getElementById('contact-title').value;
                 const company = document.getElementById('contact-company').value;
+                email = document.getElementById('contact-email')?.value || '';
 
                 if (!name || !company) {
                     alert('Please enter at least name and company');
@@ -972,9 +986,25 @@
             }
 
             const connectionType = document.getElementById('connection-type').value;
-            const context = document.getElementById('outreach-context').value;
+            let context = document.getElementById('outreach-context').value;
             const messageType = document.getElementById('message-type').value;
             const tone = document.getElementById('message-tone').value;
+
+            // Try to fetch Gmail context if we have an email
+            let gmailContext = '';
+            if (email && GmailClient.accessToken) {
+                document.getElementById('outreach-output').classList.add('loading');
+                document.getElementById('outreach-output').textContent = 'Searching your Gmail history...';
+
+                try {
+                    const history = await GmailClient.getContactHistory(email, name);
+                    gmailContext = '\n\nEMAIL HISTORY WITH CONTACT:\n' + GmailClient.summarizeForAI(history);
+                    console.log('Gmail context loaded:', history.count, 'emails found');
+                } catch (error) {
+                    console.warn('Could not fetch Gmail history:', error);
+                    // Continue without Gmail context
+                }
+            }
 
             const myBackground = `
 Luis Calderon - Ross MBA '11
@@ -999,6 +1029,7 @@ CONNECTION TYPE: ${connectionType}
 MESSAGE TYPE: ${messageType}
 TONE: ${tone}
 ${context ? `ADDITIONAL CONTEXT: ${context}` : ''}
+${gmailContext}
 
 Requirements:
 1. If Ross Alumni, lead with "Go Blue" connection
@@ -1007,6 +1038,7 @@ Requirements:
 4. Keep LinkedIn DMs under 300 characters for connection requests
 5. Show genuine interest in THEIR work, not just asking for help
 6. Include my phone number if appropriate for the message type
+${gmailContext ? '7. Reference past conversations naturally - don\'t over-explain the relationship' : ''}
 
 Generate the message:`;
 
@@ -1015,6 +1047,14 @@ Generate the message:`;
                 document.getElementById('outreach-output').classList.remove('loading');
                 document.getElementById('outreach-output').textContent = result;
                 document.getElementById('copy-outreach').classList.remove('hidden');
+
+                // Show Send Email button if we have email and Gmail is connected
+                const sendBtn = document.getElementById('send-email-btn');
+                if (email && GmailClient.accessToken && messageType.includes('email')) {
+                    sendBtn.classList.remove('hidden');
+                } else {
+                    sendBtn.classList.add('hidden');
+                }
             }
         }
 
@@ -1466,6 +1506,127 @@ Be specific, not generic. Reference actual details about ${company} and the ${ro
 
         // Run on page load
         checkForOutreachContact();
+
+        // ============================================
+        // GMAIL CONNECTION
+        // ============================================
+
+        async function toggleGmailConnection() {
+            if (GmailClient.accessToken) {
+                // Already connected, show disconnect option
+                if (confirm('Disconnect from Gmail? You will need to reconnect to use email features.')) {
+                    localStorage.removeItem('gmailAccessToken');
+                    localStorage.removeItem('gmailTokenExpiry');
+                    GmailClient.accessToken = null;
+                    updateGmailStatus();
+                }
+            } else {
+                // Not connected, check for client ID
+                const clientId = localStorage.getItem('gmailClientId');
+                if (!clientId) {
+                    // Show setup modal
+                    const newClientId = prompt('Enter your Gmail OAuth Client ID\n\nGet it from: https://console.cloud.google.com/apis/credentials\n\nSee gmail-integration.md for setup instructions.');
+                    if (newClientId) {
+                        localStorage.setItem('gmailClientId', newClientId);
+                        GmailClient.init(newClientId);
+                        await connectGmail();
+                    }
+                } else {
+                    // Have client ID, just authorize
+                    await connectGmail();
+                }
+            }
+        }
+
+        async function connectGmail() {
+            try {
+                await GmailClient.authorize();
+                updateGmailStatus();
+                alert('Connected to Gmail! You can now search your email history when generating outreach messages.');
+            } catch (error) {
+                console.error('Gmail authorization failed:', error);
+                alert('Failed to connect to Gmail. Check console for details.');
+            }
+        }
+
+        function updateGmailStatus() {
+            const btn = document.getElementById('gmail-connect-btn');
+            const icon = document.getElementById('gmail-status-icon');
+            const text = document.getElementById('gmail-status-text');
+
+            if (GmailClient.accessToken) {
+                icon.textContent = '✅';
+                text.textContent = 'Gmail Connected';
+                btn.style.background = 'linear-gradient(135deg, #34c759 0%, #30a14e 100%)';
+            } else {
+                icon.textContent = '📧';
+                text.textContent = 'Connect Gmail';
+                btn.style.background = 'rgba(255,255,255,0.1)';
+            }
+        }
+
+        // Check Gmail status on load
+        if (GmailClient.init(localStorage.getItem('gmailClientId'))) {
+            updateGmailStatus();
+        }
+
+        // ============================================
+        // SEND EMAIL
+        // ============================================
+
+        async function sendEmailDirect() {
+            const email = document.getElementById('contact-email').value;
+            const name = document.getElementById('contact-name').value;
+            const message = document.getElementById('outreach-output').textContent;
+
+            if (!email) {
+                alert('Please enter an email address for this contact.');
+                return;
+            }
+
+            if (!GmailClient.accessToken) {
+                alert('Please connect Gmail first.');
+                return;
+            }
+
+            // Extract subject from message type
+            const messageType = document.getElementById('message-type').value;
+            let subject = 'Connecting';
+            if (messageType === 'email-intro') {
+                subject = `Introduction - ${name || 'Let\'s Connect'}`;
+            } else if (messageType === 'email-followup') {
+                subject = 'Following Up';
+            } else if (messageType === 'warm-intro') {
+                subject = 'Introduction Request';
+            }
+
+            // Ask for confirmation
+            if (!confirm(`Send this email to ${email}?\n\nSubject: ${subject}\n\nYou can review the message in the preview.`)) {
+                return;
+            }
+
+            try {
+                const sendBtn = document.getElementById('send-email-btn');
+                sendBtn.textContent = '📤 Sending...';
+                sendBtn.disabled = true;
+
+                await GmailClient.sendEmail(email, subject, message);
+
+                sendBtn.textContent = '✅ Sent!';
+                setTimeout(() => {
+                    sendBtn.textContent = '📧 Send Email';
+                    sendBtn.disabled = false;
+                }, 3000);
+
+                alert('Email sent successfully!');
+            } catch (error) {
+                console.error('Failed to send email:', error);
+                alert('Failed to send email: ' + error.message);
+                const sendBtn = document.getElementById('send-email-btn');
+                sendBtn.textContent = '📧 Send Email';
+                sendBtn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>

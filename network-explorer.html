@@ -1564,14 +1564,38 @@
 
             // Position nodes based on view mode
             filteredContacts.forEach((contact, index) => {
+                const contactId = `${contact['First Name']}-${contact['Last Name']}-${contact.Company}`;
+                const isReviewed = reviewedContacts.has(contactId);
+
                 const geometry = new THREE.SphereGeometry(getNodeSize(contact), 16, 16);
+
+                // Create transparent material for reviewed contacts
                 const material = new THREE.MeshPhongMaterial({
                     color: getNodeColor(contact),
                     emissive: getNodeColor(contact),
-                    emissiveIntensity: 0.3,
-                    shininess: 100
+                    emissiveIntensity: isReviewed ? 0.1 : 0.3,
+                    shininess: 100,
+                    transparent: isReviewed,
+                    opacity: isReviewed ? 0.0 : 1.0
                 });
                 const node = new THREE.Mesh(geometry, material);
+
+                // Add dotted outline for reviewed contacts
+                if (isReviewed) {
+                    const edgesGeometry = new THREE.EdgesGeometry(geometry);
+                    const edgesMaterial = new THREE.LineDashedMaterial({
+                        color: getNodeColor(contact),
+                        linewidth: 1,
+                        scale: 1,
+                        dashSize: 2,
+                        gapSize: 2,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const outline = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+                    outline.computeLineDistances();
+                    node.add(outline);
+                }
 
                 // Position based on view mode
                 const pos = getNodePosition(contact, index, filteredContacts.length);
@@ -2481,14 +2505,38 @@
 
             // Position nodes based on view mode
             filteredContacts.forEach((contact, index) => {
+                const contactId = `${contact['First Name']}-${contact['Last Name']}-${contact.Company}`;
+                const isReviewed = reviewedContacts.has(contactId);
+
                 const geometry = new THREE.SphereGeometry(getNodeSize(contact), 16, 16);
+
+                // Create transparent material for reviewed contacts
                 const material = new THREE.MeshPhongMaterial({
                     color: getNodeColor(contact),
                     emissive: getNodeColor(contact),
-                    emissiveIntensity: 0.3,
-                    shininess: 100
+                    emissiveIntensity: isReviewed ? 0.1 : 0.3,
+                    shininess: 100,
+                    transparent: isReviewed,
+                    opacity: isReviewed ? 0.0 : 1.0
                 });
                 const node = new THREE.Mesh(geometry, material);
+
+                // Add dotted outline for reviewed contacts
+                if (isReviewed) {
+                    const edgesGeometry = new THREE.EdgesGeometry(geometry);
+                    const edgesMaterial = new THREE.LineDashedMaterial({
+                        color: getNodeColor(contact),
+                        linewidth: 1,
+                        scale: 1,
+                        dashSize: 2,
+                        gapSize: 2,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const outline = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+                    outline.computeLineDistances();
+                    node.add(outline);
+                }
 
                 const pos = getNodePosition(contact, index, filteredContacts.length);
                 node.position.set(pos.x, pos.y, pos.z);
