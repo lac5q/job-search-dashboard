@@ -2,7 +2,7 @@
 ## 90-Day Dual-Track Strategy: Full-Time (Priority) + Consulting (Cash Flow)
 
 **Created**: December 2, 2025
-**Last Updated**: December 2, 2025
+**Last Updated**: December 11, 2025
 **Target Completion**: March 2, 2026 (90 days)
 **Status**: ⚪ Planning Phase
 
@@ -286,6 +286,56 @@
   - Status: 🔴 Not Started
   - Owner: Luis
   - Due: Dec 10-13
+
+#### Toptal Waitlist Recovery (Dec 11-15)
+**Context**: Placed on Toptal waitlist due to demand timing. Objective is to increase re-review odds and avoid pipeline dependency.
+
+- [ ] **Nail one-lane positioning for marketplaces** (Priority: HIGH)
+  - Choose a single wedge to lead with (example: AI/ML Product Leadership for B2B SaaS OR E-commerce/Shopify product + AI automation)
+  - Update: headline, 3-bullet positioning, 3 proof points (metrics)
+  - Status: 🔴 Not Started
+  - Owner: Luis
+  - Due: Dec 11
+
+- [ ] **Publish portfolio pack (3 artifacts)** (Priority: CRITICAL)
+  - Case Study 1: SketchPop (problem → constraints → actions → metrics → learnings)
+  - Case Study 2: Intuit TurboTax ($1B unit scope; what you owned; outcomes)
+  - Case Study 3: AI/automation initiative (before/after, cost/time impact, adoption)
+  - Host: simple public links (Notion/Google Doc/portfolio page) + PDF backup
+  - Status: 🔴 Not Started
+  - Owner: Luis
+  - Due: Dec 13
+
+- [ ] **Screening narrative + talk track** (Priority: HIGH)
+  - 60-second pitch (who you help + why you + proof)
+  - 5-minute deep dive (one flagship case study)
+  - 5 prepared stories: conflict, ambiguity, tradeoff, failure/postmortem, leadership
+  - Status: 🔴 Not Started
+  - Owner: Luis
+  - Due: Dec 12
+
+- [ ] **Send Toptal follow-up (concise, value-dense)** (Priority: HIGH)
+  - Send 1 email to support/recruiting with:
+    - 3-line positioning summary
+    - 3 bullet proof points (metrics)
+    - 1 portfolio link (portfolio pack)
+  - Keep under 120 words; request “anything else to strengthen profile for re-review”
+  - Status: 🔴 Not Started
+  - Owner: Luis
+  - Due: Dec 11
+
+- [ ] **Warm intro / referral attempt** (Priority: MEDIUM)
+  - Identify 3 people who are (or were) in Toptal network
+  - Ask for advice + (if appropriate) referral
+  - Status: 🔴 Not Started
+  - Owner: Luis
+  - Due: Dec 15
+
+- [ ] **Parallel fractional pipeline (avoid single-platform risk)** (Priority: HIGH)
+  - Apply: A.Team, Braintrust, Contra (or equivalent) + update profiles with same “one-lane” positioning
+  - Status: 🔴 Not Started
+  - Owner: Luis
+  - Due: Dec 15
 
 #### Interview Prep
 - [ ] **Create interview prep doc** (Priority: HIGH)
@@ -709,7 +759,17 @@
 
 ## NEXT ACTIONS (Immediate)
 
-### TODAY (December 2, 2025) - CRITICAL
+### TODAY (December 11, 2025) - CRITICAL (Toptal Waitlist + Week 2 Momentum)
+1. [ ] Send Toptal follow-up email + portfolio link (15 min)
+2. [ ] Decide one-lane positioning + update LinkedIn headline/summary to match (30 min)
+3. [ ] Draft 3 case study outlines (SketchPop, Intuit, AI/Automation) + pick hosting (45 min)
+4. [ ] Apply to 3 parallel fractional networks (A.Team, Braintrust, Contra) (60 min)
+5. [ ] Add Toptal waitlist recovery tasks to tracker + set follow-up dates (10 min)
+6. [ ] Identify 3 possible referral sources + send outreach (30 min)
+
+---
+
+### ORIGINAL DAY 1 (December 2, 2025) - REFERENCE
 1. [ ] Update LinkedIn headline (5 min)
 2. [ ] Update LinkedIn "Open to Work" settings (5 min)
 3. [ ] Rewrite LinkedIn About section (30 min)
@@ -756,8 +816,8 @@
 
 ---
 
-**Last Updated**: December 2, 2025 by Claude Code
-**Next Review Due**: December 6, 2025 (Friday)
+**Last Updated**: December 11, 2025 by Cursor
+**Next Review Due**: December 12, 2025 (Friday)
 
 ---
 

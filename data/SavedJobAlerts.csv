@@ -1,0 +1,2 @@
+ALERT_PARAMETERS,QUERY_CONTEXT,SAVED_SEARCH_ID
+"{smartExpansionEnabled=true, channels=[EMAIL, INAPP_NOTIFICATION], frequency=WEEKLY}","{workflowContext={}, keywords=head of product, searchLocation={com.linkedin.jobs.matching.SpecificSearchLocation={geoLocations=[{geo=urn:li:geo:103918656, radiusInKms=40.23361244731409}]}}, facets={}}",1723280341

@@ -185,6 +185,7 @@
         }
         .loading { animation: pulse 1.5s infinite; }
     </style>
+    <script src="sync-manager.js"></script>
 </head>
 <body>
     <div class="container">
@@ -825,6 +826,8 @@
             });
 
             localStorage.setItem('jobSearchContacts', JSON.stringify(contacts));
+            // Trigger cloud sync
+            if (typeof SyncManager !== 'undefined') SyncManager.triggerSync();
             alert(`Added ${firstName} ${lastName} to CRM!`);
         }
 
@@ -878,6 +881,8 @@
             const existing = JSON.parse(localStorage.getItem('jobSearchContacts') || '[]');
             const merged = [...existing, ...crmContacts];
             localStorage.setItem('jobSearchContacts', JSON.stringify(merged));
+            // Trigger cloud sync
+            if (typeof SyncManager !== 'undefined') SyncManager.triggerSync();
 
             alert(`Exported ${crmContacts.length} contacts to CRM!\n\nGo to your dashboard to see them.`);
         }

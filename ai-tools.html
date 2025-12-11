@@ -423,12 +423,21 @@
             }
         }
     </style>
+    <script src="sync-manager.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>AI Job Search Superpowers</h1>
-            <p>Intelligent tools to accelerate your job search with AI</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>AI Job Search Superpowers</h1>
+                    <p>Intelligent tools to accelerate your job search with AI</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="network-explorer.html" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">🌐 Network Explorer</a>
+                    <a href="job-search-dashboard.html" style="background: rgba(255,255,255,0.1); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">← Dashboard</a>
+                </div>
+            </div>
         </header>
 
         <!-- Tool Selection -->
@@ -1269,6 +1278,8 @@ Be specific and actionable. Include any recent news or context that would be rel
             localStorage.setItem('messageTemplates', JSON.stringify(messageTemplates));
             document.getElementById('new-template').value = '';
             renderTemplates();
+            // Trigger cloud sync
+            if (typeof SyncManager !== 'undefined') SyncManager.triggerSync();
         }
 
         async function analyzePerformance() {

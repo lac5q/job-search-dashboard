@@ -978,7 +978,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>Job Search Command Center</h1>
+            <div style="position: relative;">
+                <h1>Job Search Command Center</h1>
+                <button id="settings-btn" onclick="openSettingsModal()" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; gap: 8px;">
+                    <span id="sync-indicator" style="width: 10px; height: 10px; border-radius: 50%; background: #888;"></span>
+                    Settings
+                </button>
+            </div>
             <p>Luis Calderon | Hands-On Product Leader | $900M P&L | AI/ML Expertise</p>
             <p class="subtitle">Target: $200-280K+ | VP/Director/Principal PM | Solo PM or Team Leader</p>
         </header>
@@ -1485,7 +1491,345 @@ Luis
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Sync Settings</h2>
+                <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <div id="sync-status-section" style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background: #f0f0f0;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="sync-status-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #888;"></span>
+                        <span id="sync-status-text">Not configured</span>
+                    </div>
+                    <p id="sync-last-updated" style="font-size: 0.85em; color: #666; margin-top: 8px;"></p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Supabase URL</label>
+                    <input type="text" id="supabase-url" placeholder="https://xxxxx.supabase.co" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Supabase API Key (anon)</label>
+                    <input type="password" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="saveSupabaseConfig()" class="btn btn-primary" style="flex: 1;">Save & Connect</button>
+                    <button onclick="syncNow()" class="btn btn-secondary" id="sync-now-btn" style="flex: 1;" disabled>Sync Now</button>
+                </div>
+
+                <hr style="margin: 25px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <h3 style="margin-bottom: 15px; font-size: 1em;">Data Management</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="exportAllData()" class="btn btn-secondary" style="flex: 1;">Export JSON</button>
+                    <button onclick="document.getElementById('import-file').click()" class="btn btn-secondary" style="flex: 1;">Import JSON</button>
+                    <input type="file" id="import-file" accept=".json" onchange="importAllData(event)" style="display: none;">
+                </div>
+                <p style="font-size: 0.8em; color: #888; margin-top: 10px;">Export creates a backup file. Import merges with existing data.</p>
+
+                <div style="margin-top: 20px;">
+                    <a href="SUPABASE-SETUP.md" target="_blank" style="color: #667eea; font-size: 0.9em;">View setup instructions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ============================================
+        // SUPABASE SYNC MODULE
+        // ============================================
+
+        const SyncManager = {
+            supabaseUrl: null,
+            supabaseKey: null,
+            isSyncing: false,
+            lastSync: null,
+
+            init() {
+                this.supabaseUrl = localStorage.getItem('supabaseUrl');
+                this.supabaseKey = localStorage.getItem('supabaseKey');
+                this.lastSync = localStorage.getItem('lastSync');
+                this.updateUI();
+
+                if (this.isConfigured()) {
+                    this.loadFromCloud();
+                }
+            },
+
+            isConfigured() {
+                return this.supabaseUrl && this.supabaseKey;
+            },
+
+            updateUI() {
+                const indicator = document.getElementById('sync-indicator');
+                const statusDot = document.getElementById('sync-status-dot');
+                const statusText = document.getElementById('sync-status-text');
+                const lastUpdated = document.getElementById('sync-last-updated');
+                const syncNowBtn = document.getElementById('sync-now-btn');
+                const urlInput = document.getElementById('supabase-url');
+                const keyInput = document.getElementById('supabase-key');
+
+                if (urlInput) urlInput.value = this.supabaseUrl || '';
+                if (keyInput) keyInput.value = this.supabaseKey || '';
+
+                if (this.isSyncing) {
+                    if (indicator) indicator.style.background = '#ffc107';
+                    if (statusDot) statusDot.style.background = '#ffc107';
+                    if (statusText) statusText.textContent = 'Syncing...';
+                } else if (this.isConfigured()) {
+                    if (indicator) indicator.style.background = '#4caf50';
+                    if (statusDot) statusDot.style.background = '#4caf50';
+                    if (statusText) statusText.textContent = 'Connected';
+                    if (syncNowBtn) syncNowBtn.disabled = false;
+                } else {
+                    if (indicator) indicator.style.background = '#888';
+                    if (statusDot) statusDot.style.background = '#888';
+                    if (statusText) statusText.textContent = 'Not configured';
+                    if (syncNowBtn) syncNowBtn.disabled = true;
+                }
+
+                if (lastUpdated && this.lastSync) {
+                    lastUpdated.textContent = 'Last synced: ' + new Date(this.lastSync).toLocaleString();
+                } else if (lastUpdated) {
+                    lastUpdated.textContent = '';
+                }
+            },
+
+            async saveConfig(url, key) {
+                this.supabaseUrl = url.trim().replace(/\/$/, '');
+                this.supabaseKey = key.trim();
+
+                localStorage.setItem('supabaseUrl', this.supabaseUrl);
+                localStorage.setItem('supabaseKey', this.supabaseKey);
+
+                // Test connection
+                try {
+                    const response = await fetch(`${this.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                        headers: {
+                            'apikey': this.supabaseKey,
+                            'Authorization': `Bearer ${this.supabaseKey}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Connection failed: ' + response.statusText);
+                    }
+
+                    this.updateUI();
+                    await this.syncToCloud();
+                    alert('Connected successfully! Your data is now syncing.');
+                    return true;
+                } catch (error) {
+                    alert('Connection failed: ' + error.message + '\n\nPlease check your URL and API key.');
+                    this.supabaseUrl = null;
+                    this.supabaseKey = null;
+                    localStorage.removeItem('supabaseUrl');
+                    localStorage.removeItem('supabaseKey');
+                    this.updateUI();
+                    return false;
+                }
+            },
+
+            async loadFromCloud() {
+                if (!this.isConfigured() || this.isSyncing) return;
+
+                this.isSyncing = true;
+                this.updateUI();
+
+                try {
+                    const response = await fetch(`${this.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                        headers: {
+                            'apikey': this.supabaseKey,
+                            'Authorization': `Bearer ${this.supabaseKey}`
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to load data');
+
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        const cloudData = data[0];
+                        const cloudTime = new Date(cloudData.updated_at).getTime();
+                        const localTime = parseInt(localStorage.getItem('localDataTimestamp') || '0');
+
+                        // Cloud is newer, use cloud data
+                        if (cloudTime > localTime) {
+                            if (cloudData.contacts) {
+                                localStorage.setItem('jobSearchContacts', JSON.stringify(cloudData.contacts));
+                            }
+                            if (cloudData.progress) {
+                                localStorage.setItem('jobSearchProgress', JSON.stringify(cloudData.progress));
+                            }
+                            if (cloudData.message_templates) {
+                                localStorage.setItem('messageTemplates', JSON.stringify(cloudData.message_templates));
+                            }
+                            if (cloudData.reviewed_contacts) {
+                                localStorage.setItem('reviewedContacts', JSON.stringify(cloudData.reviewed_contacts));
+                            }
+                            localStorage.setItem('localDataTimestamp', cloudTime.toString());
+
+                            // Refresh displays
+                            if (typeof updateAllDisplays === 'function') {
+                                updateAllDisplays();
+                            }
+                        }
+                    }
+
+                    this.lastSync = new Date().toISOString();
+                    localStorage.setItem('lastSync', this.lastSync);
+                } catch (error) {
+                    console.error('Cloud load error:', error);
+                } finally {
+                    this.isSyncing = false;
+                    this.updateUI();
+                }
+            },
+
+            async syncToCloud() {
+                if (!this.isConfigured() || this.isSyncing) return;
+
+                this.isSyncing = true;
+                this.updateUI();
+
+                try {
+                    const payload = {
+                        id: 'main',
+                        contacts: JSON.parse(localStorage.getItem('jobSearchContacts') || '[]'),
+                        progress: JSON.parse(localStorage.getItem('jobSearchProgress') || '{}'),
+                        message_templates: JSON.parse(localStorage.getItem('messageTemplates') || '[]'),
+                        reviewed_contacts: JSON.parse(localStorage.getItem('reviewedContacts') || '[]')
+                    };
+
+                    const response = await fetch(`${this.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': this.supabaseKey,
+                            'Authorization': `Bearer ${this.supabaseKey}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error('Failed to sync data');
+
+                    this.lastSync = new Date().toISOString();
+                    localStorage.setItem('lastSync', this.lastSync);
+                    localStorage.setItem('localDataTimestamp', Date.now().toString());
+                } catch (error) {
+                    console.error('Cloud sync error:', error);
+                } finally {
+                    this.isSyncing = false;
+                    this.updateUI();
+                }
+            }
+        };
+
+        // Settings modal functions
+        function openSettingsModal() {
+            SyncManager.updateUI();
+            document.getElementById('settings-modal').classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('active');
+        }
+
+        function saveSupabaseConfig() {
+            const url = document.getElementById('supabase-url').value;
+            const key = document.getElementById('supabase-key').value;
+
+            if (!url || !key) {
+                alert('Please enter both URL and API key');
+                return;
+            }
+
+            SyncManager.saveConfig(url, key);
+        }
+
+        function syncNow() {
+            if (SyncManager.isConfigured()) {
+                SyncManager.syncToCloud();
+            }
+        }
+
+        function exportAllData() {
+            const data = {
+                contacts: JSON.parse(localStorage.getItem('jobSearchContacts') || '[]'),
+                progress: JSON.parse(localStorage.getItem('jobSearchProgress') || '{}'),
+                messageTemplates: JSON.parse(localStorage.getItem('messageTemplates') || '[]'),
+                reviewedContacts: JSON.parse(localStorage.getItem('reviewedContacts') || '[]'),
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `job-search-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importAllData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // Merge contacts
+                    if (data.contacts) {
+                        const existing = JSON.parse(localStorage.getItem('jobSearchContacts') || '[]');
+                        const existingIds = new Set(existing.map(c => c.id));
+                        const newContacts = data.contacts.filter(c => !existingIds.has(c.id));
+                        localStorage.setItem('jobSearchContacts', JSON.stringify([...existing, ...newContacts]));
+                    }
+
+                    // Merge progress
+                    if (data.progress) {
+                        const existing = JSON.parse(localStorage.getItem('jobSearchProgress') || '{}');
+                        localStorage.setItem('jobSearchProgress', JSON.stringify({...existing, ...data.progress}));
+                    }
+
+                    // Merge templates
+                    if (data.messageTemplates) {
+                        localStorage.setItem('messageTemplates', JSON.stringify(data.messageTemplates));
+                    }
+
+                    // Merge reviewed contacts
+                    if (data.reviewedContacts) {
+                        const existing = JSON.parse(localStorage.getItem('reviewedContacts') || '[]');
+                        const merged = [...new Set([...existing, ...data.reviewedContacts])];
+                        localStorage.setItem('reviewedContacts', JSON.stringify(merged));
+                    }
+
+                    localStorage.setItem('localDataTimestamp', Date.now().toString());
+
+                    if (typeof updateAllDisplays === 'function') {
+                        updateAllDisplays();
+                    }
+
+                    if (SyncManager.isConfigured()) {
+                        SyncManager.syncToCloud();
+                    }
+
+                    alert('Data imported successfully!');
+                } catch (error) {
+                    alert('Failed to import data: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
         // ============================================
         // DATA MANAGEMENT
         // ============================================
@@ -1496,7 +1840,13 @@ Luis
 
         function saveContacts(contacts) {
             localStorage.setItem('jobSearchContacts', JSON.stringify(contacts));
+            localStorage.setItem('localDataTimestamp', Date.now().toString());
             updateAllDisplays();
+            // Trigger cloud sync (debounced)
+            if (SyncManager.isConfigured()) {
+                clearTimeout(window.syncTimeout);
+                window.syncTimeout = setTimeout(() => SyncManager.syncToCloud(), 1000);
+            }
         }
 
         function getProgress() {
@@ -1505,6 +1855,12 @@ Luis
 
         function saveProgress(progress) {
             localStorage.setItem('jobSearchProgress', JSON.stringify(progress));
+            localStorage.setItem('localDataTimestamp', Date.now().toString());
+            // Trigger cloud sync (debounced)
+            if (SyncManager.isConfigured()) {
+                clearTimeout(window.syncTimeout);
+                window.syncTimeout = setTimeout(() => SyncManager.syncToCloud(), 1000);
+            }
         }
 
         // ============================================
@@ -2359,6 +2715,9 @@ Luis
         // INITIALIZE
         // ============================================
 
+        // Initialize sync manager first (loads cloud data if configured)
+        SyncManager.init();
+
         updateAllDisplays();
 
         // Close modal on outside click
@@ -2370,11 +2729,16 @@ Luis
             if (e.target === this) closeOutreachModal();
         });
 
+        document.getElementById('settings-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSettingsModal();
+        });
+
         // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
                 closeOutreachModal();
+                closeSettingsModal();
             }
         });
     </script>

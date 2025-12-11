@@ -853,6 +853,7 @@
             border-radius: 3px;
         }
     </style>
+    <script src="sync-manager.js"></script>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
@@ -1235,6 +1236,7 @@
                 <label>Product Manager</label> <input type="number" id="weight-pm" value="20" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
                 <label>Director Level</label> <input type="number" id="weight-director" value="15" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
                 <label>Big Tech</label> <input type="number" id="weight-bigtech" value="15" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
+                <label>Service Potential (1=Low, 2=Med, 3=High)</label> <input type="number" id="weight-service" value="10" style="padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white;">
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -1265,15 +1267,18 @@
         let isRotating = true;
         let rotationSpeed = 0.0005;
 
-        // Configurable Weights
+        // Configurable Weights - Company-Focused Prioritization
         let SCORING_WEIGHTS = {
-            ross: 50,
-            ceo: 30,
-            target: 30,
-            vp: 25,
-            pm: 20,
-            director: 15,
-            bigtech: 15
+            tier1_company: 60,  // AI-first companies (Series B-D)
+            tier2_company: 40,  // Traditional companies adding AI
+            ross: 45,           // Ross connection still valuable
+            director: 30,       // Director/Head of Product (sweet spot)
+            vp: 25,             // VP at smaller companies
+            ceo: 25,            // CEO/Founder access
+            target: 25,         // General target company
+            pm: 15,             // Principal/Sr PM roles
+            bigtech: 10,        // De-prioritized (harder to get in)
+            service: 1          // Service potential multiplier
         };
 
         // Initialize Three.js scene
@@ -1395,45 +1400,57 @@
                 contact.isPM = true;
             }
 
-            // Use the comprehensive TARGET_COMPANIES database if available
+            // Company Tier Detection (Company-Focused Search)
             contact.companyMatchScore = 0;
             contact.companyInfo = null;
+            contact.companyTier = null;
 
-            if (typeof TARGET_COMPANIES !== 'undefined') {
-                // Look up company in the database
+            // Tier 1: AI-First Companies (Series B-D)
+            const tier1Companies = [
+                'jasper', 'character.ai', 'perplexity', 'harvey', 'typeface',
+                'anthropic', 'openai', 'cohere', 'stability', 'midjourney',
+                'runway', 'adept', 'inflection', 'glean', 'copy.ai'
+            ];
+
+            // Tier 2: Traditional Companies Adding AI
+            const tier2Companies = [
+                'shopify', 'salesforce', 'adobe', 'intuit', 'servicenow',
+                'stripe', 'plaid', 'square', 'twilio', 'segment',
+                'hubspot', 'zendesk', 'atlassian', 'notion', 'airtable',
+                'figma', 'canva', 'miro', 'linear', 'vercel'
+            ];
+
+            // Big Tech (de-prioritized but still tracked)
+            const bigTech = ['google', 'meta', 'amazon', 'apple', 'microsoft', 'netflix'];
+
+            if (tier1Companies.some(t => company.includes(t))) {
+                score += SCORING_WEIGHTS.tier1_company;
+                contact.isTarget = true;
+                contact.companyTier = 'Tier 1: AI-First';
+                contact.companyMatchScore = 90;
+            } else if (tier2Companies.some(t => company.includes(t))) {
+                score += SCORING_WEIGHTS.tier2_company;
+                contact.isTarget = true;
+                contact.companyTier = 'Tier 2: AI Transformation';
+                contact.companyMatchScore = 75;
+            } else if (bigTech.some(t => company.includes(t))) {
+                score += SCORING_WEIGHTS.bigtech;
+                contact.companyTier = 'Big Tech';
+                contact.companyMatchScore = 40;
+            } else if (typeof TARGET_COMPANIES !== 'undefined') {
+                // Use comprehensive database if available
                 const companyInfo = getCompanyInfo(company);
                 if (companyInfo) {
                     contact.companyMatchScore = companyInfo.score;
                     contact.companyInfo = companyInfo;
-                    contact.isTarget = companyInfo.score >= 80; // Tier 1 & 2
-
-                    // Add company match score to overall score (scaled)
-                    if (contact.isTarget) {
-                         score += SCORING_WEIGHTS.target; // Base target bonus
-                         // Plus tier bonus? Let's keep it simple for now or scale it.
-                         // Keeping it simple based on config weight.
-                    }
-                }
-            } else {
-                // Fallback
-                const basicTargets = ['stripe', 'openai', 'anthropic', 'figma', 'notion', 'linear',
-                    'vercel', 'datadog', 'snowflake', 'databricks', 'airtable'];
-                if (basicTargets.some(t => company.includes(t))) {
-                    score += SCORING_WEIGHTS.target;
-                    contact.isTarget = true;
-                    contact.companyMatchScore = 80;
-                }
-
-                // Big tech bonus
-                const bigTech = ['google', 'meta', 'amazon', 'apple', 'microsoft', 'netflix'];
-                if (bigTech.some(t => company.includes(t))) {
-                    score += SCORING_WEIGHTS.bigtech;
-                    contact.companyMatchScore = 40;
+                    contact.isTarget = companyInfo.score >= 70;
+                    if (contact.isTarget) score += SCORING_WEIGHTS.target;
                 }
             }
             
             // Calculate Service Score (Secondary)
             calculateServiceScore(contact);
+            score += (contact.serviceScore || 0) * SCORING_WEIGHTS.service; // Integrate service potential
 
             contact.score = score;
             return score;
@@ -1527,9 +1544,9 @@
                 // Reviewed Status Filter
                 const contactId = `${contact['First Name']}-${contact['Last Name']}-${contact.Company}`;
                 const isReviewed = reviewedContacts.has(contactId);
-                
-                // If "Show Reviewed" is UNCHECKED (false), hide reviewed contacts
-                if (!showReviewedContacts && isReviewed) return false;
+
+                // If "Show Reviewed" is CHECKED, show only reviewed contacts
+                if (showReviewedContacts && !isReviewed) return false;
 
                 // Search filter
                 const searchTerm = document.getElementById('searchBox').value.toLowerCase();
@@ -1760,7 +1777,9 @@
             }
             
             localStorage.setItem('reviewedContacts', JSON.stringify([...reviewedContacts]));
-            
+            // Trigger cloud sync
+            if (typeof SyncManager !== 'undefined') SyncManager.triggerSync();
+
             if (!showReviewedContacts) {
                createNodes();
                closeInfoPanel();
@@ -2088,6 +2107,8 @@
 
             crmContacts.push(newContact);
             localStorage.setItem('jobSearchContacts', JSON.stringify(crmContacts));
+            // Trigger cloud sync
+            if (typeof SyncManager !== 'undefined') SyncManager.triggerSync();
 
             // Show success with option to view dashboard
             const viewDashboard = confirm(`${contact['First Name']} ${contact['Last Name']} added to CRM!\n\nClick OK to open the Dashboard and see them, or Cancel to stay here.`);
@@ -2154,6 +2175,8 @@
                 };
                 crmContacts.push(newContact);
                 localStorage.setItem('jobSearchContacts', JSON.stringify(crmContacts));
+                // Trigger cloud sync
+                if (typeof SyncManager !== 'undefined') SyncManager.triggerSync();
             }
 
             // Open AI tools page
