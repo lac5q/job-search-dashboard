@@ -27,6 +27,7 @@ CREATE TABLE job_search_data (
     progress JSONB DEFAULT '{}'::jsonb,
     message_templates JSONB DEFAULT '[]'::jsonb,
     reviewed_contacts JSONB DEFAULT '[]'::jsonb,
+    network_explorer_filters JSONB DEFAULT '{}'::jsonb,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

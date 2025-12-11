@@ -593,6 +593,41 @@
             border-radius: 12px;
             padding: 15px;
             backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .legend.hidden {
+            transform: translateX(calc(100% + 20px));
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .legend-toggle {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            z-index: 99;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #a5b4fc;
+            font-size: 0.75rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-toggle:hover {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .legend-toggle.legend-visible {
+            transform: translateX(-280px);
         }
 
         .legend-item {
@@ -608,6 +643,30 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
+        }
+
+        /* Reset Button */
+        .reset-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: #fca5a5;
+            font-size: 0.8rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .reset-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
         }
 
         /* Instructions */
@@ -1150,8 +1209,11 @@
         </div>
     </div>
 
-    <!-- Legend -->
-    <div class="legend">
+    <!-- Legend with toggle -->
+    <button class="legend-toggle" id="legendToggle" onclick="toggleLegend()">
+        <span id="legendToggleIcon">◀</span> Legend
+    </button>
+    <div class="legend" id="legend">
         <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.8rem;">Color = Priority Score</div>
         <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div> High Priority (70+)</div>
         <div class="legend-item"><div class="legend-dot" style="background: #6366f1;"></div> Medium Priority (40+)</div>
@@ -1164,6 +1226,9 @@
         <div class="legend-item"><div class="legend-dot" style="width: 10px; height: 10px; background: #a5b4fc;"></div> Tier 3-4</div>
         <div class="legend-item"><div class="legend-dot" style="width: 7px; height: 7px; background: #a5b4fc;"></div> Tier 5 / Other</div>
     </div>
+
+    <!-- Reset Button -->
+    <button class="reset-btn" onclick="resetFilters()">↺ Reset All Filters</button>
 
     <!-- Help Button -->
     <button class="help-btn" onclick="document.getElementById('helpModal').classList.add('visible')">? How to Use</button>
@@ -2578,6 +2643,216 @@
                 `;
             }
         };
+
+        // ============================================
+        // LEGEND TOGGLE
+        // ============================================
+
+        function toggleLegend() {
+            const legend = document.getElementById('legend');
+            const toggle = document.getElementById('legendToggle');
+            const icon = document.getElementById('legendToggleIcon');
+
+            legend.classList.toggle('hidden');
+            toggle.classList.toggle('legend-visible');
+
+            if (legend.classList.contains('hidden')) {
+                icon.textContent = '▶';
+            } else {
+                icon.textContent = '◀';
+            }
+
+            // Save preference
+            const legendVisible = !legend.classList.contains('hidden');
+            saveFilterSettings({ legendVisible });
+        }
+
+        // ============================================
+        // RESET FILTERS
+        // ============================================
+
+        function resetFilters() {
+            if (!confirm('Reset all filters to default settings?')) {
+                return;
+            }
+
+            // Reset priority slider
+            document.getElementById('prioritySlider').value = 0;
+            document.getElementById('sliderValue').textContent = 'All';
+
+            // Reset service slider
+            document.getElementById('serviceSlider').value = 0;
+            document.getElementById('serviceValue').textContent = 'All';
+
+            // Reset company tier slider
+            document.getElementById('companyTierSlider').value = 5;
+            document.getElementById('companyTierValue').textContent = 'All Tiers';
+            currentCompanyTier = 5;
+
+            // Reset role filters
+            document.querySelectorAll('#roleFilters .filter-btn').forEach(btn => {
+                if (btn.dataset.filter === 'all') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Reset degree filters
+            document.querySelectorAll('#degreeFilters .filter-btn').forEach(btn => {
+                if (btn.dataset.degree === 'all') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Reset reviewed checkbox
+            document.getElementById('showReviewed').checked = false;
+
+            // Reset view mode to galaxy
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                if (btn.dataset.view === 'galaxy') {
+                    btn.classList.add('active');
+                    currentViewMode = 'galaxy';
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Reset company filter
+            selectAllCompanies();
+
+            // Reset search
+            document.getElementById('searchBox').value = '';
+
+            // Clear saved settings
+            localStorage.removeItem('networkExplorerFilters');
+
+            // Recreate nodes with reset filters
+            createNodes();
+        }
+
+        // ============================================
+        // SAVE/LOAD FILTER SETTINGS
+        // ============================================
+
+        function saveFilterSettings(additionalSettings = {}) {
+            const settings = {
+                prioritySlider: document.getElementById('prioritySlider').value,
+                serviceSlider: document.getElementById('serviceSlider').value,
+                companyTierSlider: document.getElementById('companyTierSlider').value,
+                viewMode: currentViewMode,
+                showReviewed: document.getElementById('showReviewed').checked,
+                selectedCompanies: Array.from(selectedCompanies),
+                roleFilter: Array.from(document.querySelectorAll('#roleFilters .filter-btn.active')).map(btn => btn.dataset.filter),
+                degreeFilter: Array.from(document.querySelectorAll('#degreeFilters .filter-btn.active')).map(btn => btn.dataset.degree),
+                ...additionalSettings
+            };
+
+            localStorage.setItem('networkExplorerFilters', JSON.stringify(settings));
+
+            // Sync to cloud if available
+            if (typeof SyncManager !== 'undefined' && SyncManager.isConfigured()) {
+                const currentData = {
+                    contacts: JSON.parse(localStorage.getItem('jobSearchContacts') || '[]'),
+                    progress: JSON.parse(localStorage.getItem('jobSearchProgress') || '{}'),
+                    message_templates: JSON.parse(localStorage.getItem('jobSearchMessageTemplates') || '[]'),
+                    reviewed_contacts: JSON.parse(localStorage.getItem('reviewedContacts') || '[]'),
+                    network_explorer_filters: settings
+                };
+
+                clearTimeout(window.filterSyncTimeout);
+                window.filterSyncTimeout = setTimeout(() => {
+                    SyncManager.syncToCloud(currentData);
+                }, 1000);
+            }
+        }
+
+        function loadFilterSettings() {
+            const saved = localStorage.getItem('networkExplorerFilters');
+            if (!saved) return;
+
+            try {
+                const settings = JSON.parse(saved);
+
+                // Restore sliders
+                if (settings.prioritySlider !== undefined) {
+                    document.getElementById('prioritySlider').value = settings.prioritySlider;
+                    const value = parseInt(settings.prioritySlider);
+                    document.getElementById('sliderValue').textContent = value === 0 ? 'All' : value + '+';
+                }
+
+                if (settings.serviceSlider !== undefined) {
+                    document.getElementById('serviceSlider').value = settings.serviceSlider;
+                    const labels = {0: 'All', 1: 'Low+', 2: 'Med+', 3: 'High Only'};
+                    document.getElementById('serviceValue').textContent = labels[settings.serviceSlider] || 'All';
+                }
+
+                if (settings.companyTierSlider !== undefined) {
+                    document.getElementById('companyTierSlider').value = settings.companyTierSlider;
+                    currentCompanyTier = parseInt(settings.companyTierSlider);
+                    const tiers = {1: 'Tier 1 Only', 2: 'Tier 1-2', 3: 'Tier 1-3', 4: 'Tier 1-4', 5: 'All Tiers'};
+                    document.getElementById('companyTierValue').textContent = tiers[settings.companyTierSlider] || 'All Tiers';
+                }
+
+                // Restore view mode
+                if (settings.viewMode) {
+                    currentViewMode = settings.viewMode;
+                    document.querySelectorAll('.view-btn').forEach(btn => {
+                        if (btn.dataset.view === settings.viewMode) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+
+                // Restore reviewed checkbox
+                if (settings.showReviewed !== undefined) {
+                    document.getElementById('showReviewed').checked = settings.showReviewed;
+                }
+
+                // Restore company selection
+                if (settings.selectedCompanies) {
+                    selectedCompanies = new Set(settings.selectedCompanies);
+                }
+
+                // Restore legend visibility
+                if (settings.legendVisible === false) {
+                    document.getElementById('legend').classList.add('hidden');
+                    document.getElementById('legendToggle').classList.add('legend-visible');
+                    document.getElementById('legendToggleIcon').textContent = '▶';
+                }
+
+                console.log('Filter settings loaded from storage');
+            } catch (e) {
+                console.error('Error loading filter settings:', e);
+            }
+        }
+
+        // Auto-save filters whenever they change
+        document.getElementById('prioritySlider').addEventListener('change', () => saveFilterSettings());
+        document.getElementById('serviceSlider').addEventListener('change', () => saveFilterSettings());
+        document.getElementById('companyTierSlider').addEventListener('change', () => saveFilterSettings());
+        document.getElementById('showReviewed').addEventListener('change', () => saveFilterSettings());
+
+        // Save filters when role/degree buttons are clicked
+        document.querySelectorAll('#roleFilters .filter-btn, #degreeFilters .filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimeout(() => saveFilterSettings(), 100); // Small delay to ensure active classes are updated
+            });
+        });
+
+        // Save view mode when changed
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimeout(() => saveFilterSettings(), 100);
+            });
+        });
+
+        // Load settings on page load
+        loadFilterSettings();
     </script>
 </body>
 </html>
