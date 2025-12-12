@@ -1641,7 +1641,7 @@
                     emissiveIntensity: isReviewed ? 0.1 : 0.3,
                     shininess: 100,
                     transparent: isReviewed,
-                    opacity: isReviewed ? 0.0 : 1.0
+                    opacity: isReviewed ? 0.3 : 1.0  // Changed from 0.0 to 0.3 so reviewed contacts are visible
                 });
                 const node = new THREE.Mesh(geometry, material);
 
@@ -2582,7 +2582,7 @@
                     emissiveIntensity: isReviewed ? 0.1 : 0.3,
                     shininess: 100,
                     transparent: isReviewed,
-                    opacity: isReviewed ? 0.0 : 1.0
+                    opacity: isReviewed ? 0.3 : 1.0  // Changed from 0.0 to 0.3 so reviewed contacts are visible
                 });
                 const node = new THREE.Mesh(geometry, material);
 
