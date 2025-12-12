@@ -1738,13 +1738,16 @@ Luis
             // Import LinkedIn conversations from Supabase and merge with contacts
             importLinkedInConversations(linkedinConversations) {
                 try {
+                    console.log('Importing LinkedIn conversations:', linkedinConversations.length);
                     const existingContacts = getContacts();
                     const existingMap = new Map(existingContacts.map(c => [c.name.toLowerCase(), c]));
                     let newContactsAdded = 0;
                     let contactsUpdated = 0;
 
                     linkedinConversations.forEach(conv => {
-                        const nameLower = conv.contactName.toLowerCase();
+                        console.log('Processing conversation:', conv);
+                        const contactName = conv.contactName || 'Unknown Contact';
+                        const nameLower = contactName.toLowerCase();
 
                         // Check if contact already exists
                         if (existingMap.has(nameLower)) {
@@ -1765,7 +1768,7 @@ Luis
                             // Create new contact from LinkedIn conversation
                             const newContact = {
                                 id: conv.id || `linkedin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                                name: conv.contactName,
+                                name: contactName,  // Use the extracted contactName variable
                                 company: '',
                                 title: '',
                                 email: '',
@@ -1775,14 +1778,15 @@ Luis
                                 status: 'contacted',
                                 addedDate: conv.timestamp || conv.syncedAt,
                                 lastContact: conv.timestamp || conv.syncedAt,
-                                notes: `LinkedIn conversation:\n${conv.lastMessage}`,
+                                notes: `LinkedIn conversation:\n${conv.lastMessage || ''}`,
                                 outreach: [{
                                     type: 'linkedin',
                                     date: conv.timestamp || conv.syncedAt,
-                                    notes: conv.lastMessage
+                                    notes: conv.lastMessage || ''
                                 }]
                             };
 
+                            console.log('Creating new contact:', newContact.name);
                             existingContacts.push(newContact);
                             existingMap.set(nameLower, newContact);
                             newContactsAdded++;
