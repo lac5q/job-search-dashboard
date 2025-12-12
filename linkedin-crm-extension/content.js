@@ -3,25 +3,40 @@
 
 console.log('LinkedIn CRM Sync: Content script loaded');
 
-// Configuration
+// Configuration with hardcoded defaults
+const DEFAULT_SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTIxMTgsImV4cCI6MjA4MTA2ODExOH0.GPdoDd7z5nuGx-oQ2l6CQX-fdz7T4CdUpG_PwORZB_g';
+
 let syncEnabled = true;
-let supabaseUrl = '';
-let supabaseKey = '';
+let supabaseUrl = DEFAULT_SUPABASE_URL;
+let supabaseKey = DEFAULT_SUPABASE_KEY;
 let lastProcessedMessages = new Set();
+let errorCount = 0;
+let lastCheckTime = 0;
+const CHECK_DEBOUNCE_MS = 5000; // Wait 5 seconds between checks
+const MAX_ERRORS = 5; // Stop after 5 errors
 
-// Load settings from storage
-chrome.storage.sync.get(['syncEnabled', 'supabaseUrl', 'supabaseKey', 'lastProcessedMessages'], (result) => {
+// Load settings from storage (override defaults if set)
+chrome.storage.sync.get(['syncEnabled', 'supabaseUrl', 'supabaseKey'], (result) => {
     syncEnabled = result.syncEnabled !== false; // Default to true
-    supabaseUrl = result.supabaseUrl || '';
-    supabaseKey = result.supabaseKey || '';
-    lastProcessedMessages = new Set(result.lastProcessedMessages || []);
+    if (result.supabaseUrl) supabaseUrl = result.supabaseUrl;
+    if (result.supabaseKey) supabaseKey = result.supabaseKey;
 
-    if (syncEnabled && supabaseUrl && supabaseKey) {
-        console.log('LinkedIn CRM Sync: Enabled and configured');
-        startMonitoring();
-    } else {
-        console.log('LinkedIn CRM Sync: Not configured. Please set up in extension popup.');
+    // Auto-save defaults if not already saved
+    if (!result.supabaseUrl || !result.supabaseKey) {
+        chrome.storage.sync.set({
+            supabaseUrl: DEFAULT_SUPABASE_URL,
+            supabaseKey: DEFAULT_SUPABASE_KEY
+        });
     }
+
+    // Load processed messages from local storage
+    chrome.storage.local.get(['lastProcessedMessages'], (localResult) => {
+        lastProcessedMessages = new Set(localResult.lastProcessedMessages || []);
+
+        console.log('LinkedIn CRM Sync: Enabled and configured with defaults');
+        startMonitoring();
+    });
 });
 
 // Listen for settings updates
@@ -57,12 +72,12 @@ function startMonitoring() {
         checkForNewMessages();
     }
 
-    // Periodic check every 10 seconds
+    // Periodic check every 30 seconds (reduced frequency)
     setInterval(() => {
         if (isMessagingPage()) {
             checkForNewMessages();
         }
-    }, 10000);
+    }, 30000);
 }
 
 function isMessagingPage() {
@@ -70,17 +85,34 @@ function isMessagingPage() {
 }
 
 function checkForNewMessages() {
+    // Debounce: Don't check too frequently
+    const now = Date.now();
+    if (now - lastCheckTime < CHECK_DEBOUNCE_MS) {
+        return;
+    }
+    lastCheckTime = now;
+
+    // Stop if too many errors
+    if (errorCount >= MAX_ERRORS) {
+        console.log('❌ Too many sync errors. Extension paused. Reload page to retry.');
+        return;
+    }
+
     // LinkedIn messaging structure (may need updates if LinkedIn changes their DOM)
     const conversationThreads = document.querySelectorAll('.msg-conversation-listitem');
 
-    conversationThreads.forEach(thread => {
+    let newCount = 0;
+    let alreadyProcessedCount = 0;
+
+    conversationThreads.forEach((thread) => {
         const contactName = extractContactName(thread);
         const lastMessage = extractLastMessage(thread);
         const timestamp = extractTimestamp(thread);
         const conversationId = extractConversationId(thread);
 
-        if (contactName && lastMessage && !lastProcessedMessages.has(conversationId)) {
-            console.log('New LinkedIn message detected:', { contactName, lastMessage, timestamp });
+        if (contactName && lastMessage && conversationId && !lastProcessedMessages.has(conversationId)) {
+            console.log(`📬 New: ${contactName}`);
+            newCount++;
 
             // Mark as processed
             lastProcessedMessages.add(conversationId);
@@ -94,8 +126,14 @@ function checkForNewMessages() {
                 conversationId,
                 url: window.location.href
             });
+        } else if (conversationId && lastProcessedMessages.has(conversationId)) {
+            alreadyProcessedCount++;
         }
     });
+
+    if (newCount > 0) {
+        console.log(`✅ Synced ${newCount} new conversation(s)`);
+    }
 }
 
 function extractContactName(threadElement) {
@@ -110,7 +148,12 @@ function extractContactName(threadElement) {
 
 function extractLastMessage(threadElement) {
     try {
-        const messageElement = threadElement.querySelector('.msg-conversation-listitem__message-snippet');
+        // Try multiple selectors (LinkedIn updates their DOM frequently)
+        const messageElement =
+            threadElement.querySelector('.msg-conversation-card__message-snippet') ||
+            threadElement.querySelector('.msg-conversation-listitem__message-snippet') ||
+            threadElement.querySelector('[class*="message-snippet"]');
+
         return messageElement ? messageElement.textContent.trim() : null;
     } catch (e) {
         console.error('Error extracting message:', e);
@@ -129,101 +172,70 @@ function extractTimestamp(threadElement) {
 
 function extractConversationId(threadElement) {
     try {
-        // Use data attribute or href to create unique ID
+        // Try to get thread ID from href
         const link = threadElement.querySelector('a[href*="messaging"]');
         if (link) {
             const href = link.getAttribute('href');
-            const match = href.match(/messaging\/thread\/([^/]+)/);
-            return match ? match[1] : null;
+            const match = href.match(/messaging\/thread\/([^/?]+)/);
+            if (match) return match[1];
         }
 
-        // Fallback: use timestamp + contact name as ID
-        return `${extractContactName(threadElement)}-${Date.now()}`;
+        // Try to get from data-control-id or other attributes
+        const controlId = threadElement.getAttribute('data-control-id') ||
+                         threadElement.getAttribute('data-view-name') ||
+                         threadElement.getAttribute('id');
+        if (controlId) return controlId;
+
+        // Fallback: use contact name only (static per conversation)
+        const contactName = extractContactName(threadElement);
+        return contactName ? `contact-${contactName.replace(/\s+/g, '-').toLowerCase()}` : null;
     } catch (e) {
-        return `fallback-${Date.now()}`;
+        console.error('Error extracting conversation ID:', e);
+        return null;
     }
 }
 
 function saveProcessedMessages() {
-    // Keep only last 1000 messages in memory
-    const messagesArray = Array.from(lastProcessedMessages).slice(-1000);
-    chrome.storage.sync.set({ lastProcessedMessages: messagesArray });
+    // Keep only last 100 messages to avoid quota issues
+    const messagesArray = Array.from(lastProcessedMessages).slice(-100);
+
+    // Use local storage instead of sync to avoid quota limits
+    chrome.storage.local.set({ lastProcessedMessages: messagesArray }).catch(err => {
+        console.warn('Failed to save processed messages:', err);
+        // If still fails, just keep in memory
+    });
 }
+
+// API endpoint for syncing (Vercel serverless function)
+const SYNC_API_ENDPOINT = 'https://luis-jobhunt-pvrrefr6d-luis-calderons-projects-9c5eea79.vercel.app/api/linkedin-sync';
 
 async function syncMessageToCRM(messageData) {
     try {
-        // Content scripts run in page context and CAN access Supabase directly!
-        const SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5NjAxODMsImV4cCI6MjA0OTUzNjE4M30.sRjuUO41AoN9lqCWmRKjxVDN48rVWnNyIz8n2ShdHqE';
-
-        console.log('Fetching existing conversations from Supabase...');
-
-        // Get existing data
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/job_search_data?id=eq.main`, {
+        const response = await fetch(SYNC_API_ENDPOINT, {
+            method: 'POST',
             headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`
-            }
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageData)
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch: HTTP ${response.status}`);
+            const error = await response.json();
+            throw new Error(error.error || `HTTP ${response.status}`);
         }
 
-        const data = await response.json();
-        let linkedinConversations = data[0]?.linkedin_conversations || [];
-
-        // Add new conversation
-        const conversationLog = {
-            id: messageData.conversationId,
-            contactName: messageData.contactName,
-            lastMessage: messageData.message,
-            timestamp: messageData.timestamp,
-            url: messageData.url,
-            syncedAt: new Date().toISOString()
-        };
-
-        const existingIndex = linkedinConversations.findIndex(c => c.id === messageData.conversationId);
-        if (existingIndex >= 0) {
-            linkedinConversations[existingIndex] = conversationLog;
-            console.log('Updating existing conversation');
-        } else {
-            linkedinConversations.unshift(conversationLog);
-            console.log('Adding new conversation');
-        }
-
-        linkedinConversations = linkedinConversations.slice(0, 500);
-
-        // Update Supabase
-        console.log('Saving to Supabase...');
-        const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/job_search_data?id=eq.main`, {
-            method: 'PATCH',
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                linkedin_conversations: linkedinConversations
-            })
-        });
-
-        if (!updateResponse.ok) {
-            throw new Error(`Update failed: HTTP ${updateResponse.status}`);
-        }
-
-        console.log('✅ Message synced to CRM:', messageData.contactName);
-        showNotification('LinkedIn message synced to CRM');
-
-        // Update stats in extension storage
-        chrome.storage.sync.set({
-            messageCount: linkedinConversations.length,
-            lastSync: new Date().toISOString()
-        });
+        const result = await response.json();
+        console.log(`✓ ${messageData.contactName}`);
+        showNotification(`✓ ${messageData.contactName}`);
+        errorCount = 0; // Reset on success
 
     } catch (error) {
-        console.error('❌ Error syncing to CRM:', error);
-        showNotification('Sync failed: ' + error.message);
+        errorCount++;
+        console.error(`❌ Sync error (${errorCount}/${MAX_ERRORS}):`, error.message);
+
+        if (errorCount >= MAX_ERRORS) {
+            showNotification('Too many errors - paused');
+        }
     }
 }
 
@@ -274,8 +286,51 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const conversation = extractCurrentConversation();
         sendResponse({ conversation });
     }
+
+    if (request.type === 'CLEAR_PROCESSED_MESSAGES') {
+        lastProcessedMessages.clear();
+        chrome.storage.sync.set({ lastProcessedMessages: [] });
+        console.log('🗑️ Cleared processed messages cache');
+        sendResponse({ success: true });
+    }
+
+    if (request.type === 'FORCE_CHECK') {
+        console.log('🔄 Manual check triggered');
+        checkForNewMessages();
+        sendResponse({ success: true });
+    }
+
     return true;
 });
+
+// Add global helper for testing in Console
+window.linkedInCRMDebug = {
+    clearCache: () => {
+        lastProcessedMessages.clear();
+        chrome.storage.local.set({ lastProcessedMessages: [] });
+        errorCount = 0;
+        console.log('🗑️ Cleared processed messages cache and reset error count');
+    },
+    forceCheck: () => {
+        console.log('🔄 Forcing message check...');
+        lastCheckTime = 0; // Reset debounce
+        checkForNewMessages();
+    },
+    showStats: () => {
+        console.log('📊 Extension Stats:', {
+            processedMessages: lastProcessedMessages.size,
+            errorCount: errorCount,
+            maxErrors: MAX_ERRORS,
+            syncEnabled,
+            hasCredentials: !!(supabaseUrl && supabaseKey),
+            paused: errorCount >= MAX_ERRORS
+        });
+    },
+    resetErrors: () => {
+        errorCount = 0;
+        console.log('✅ Error count reset. Extension resumed.');
+    }
+};
 
 function extractCurrentConversation() {
     // Extract full conversation if user is viewing a thread
