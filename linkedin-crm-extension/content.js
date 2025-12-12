@@ -1,7 +1,8 @@
 // LinkedIn CRM Sync - Content Script
 // Monitors LinkedIn messaging page and syncs conversations
 
-console.log('LinkedIn CRM Sync: Content script loaded');
+// Silent mode - only log critical info
+console.log('LinkedIn CRM Sync v1.3.3');
 
 // Configuration with hardcoded defaults
 const DEFAULT_SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
@@ -33,8 +34,6 @@ chrome.storage.sync.get(['syncEnabled', 'supabaseUrl', 'supabaseKey'], (result) 
     // Load processed messages from local storage
     chrome.storage.local.get(['lastProcessedMessages'], (localResult) => {
         lastProcessedMessages = new Set(localResult.lastProcessedMessages || []);
-
-        console.log('LinkedIn CRM Sync: Enabled and configured with defaults');
         startMonitoring();
     });
 });
@@ -53,8 +52,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 function startMonitoring() {
-    console.log('LinkedIn CRM Sync: Starting conversation monitor...');
-
     // Monitor for messaging page
     const observer = new MutationObserver((mutations) => {
         if (isMessagingPage()) {
@@ -92,9 +89,8 @@ function checkForNewMessages() {
     }
     lastCheckTime = now;
 
-    // Stop if too many errors
+    // Stop if too many errors (silent)
     if (errorCount >= MAX_ERRORS) {
-        console.log('❌ Too many sync errors. Extension paused. Reload page to retry.');
         return;
     }
 
@@ -111,7 +107,6 @@ function checkForNewMessages() {
         const conversationId = extractConversationId(thread);
 
         if (contactName && lastMessage && conversationId && !lastProcessedMessages.has(conversationId)) {
-            console.log(`📬 New: ${contactName}`);
             newCount++;
 
             // Mark as processed
@@ -131,9 +126,7 @@ function checkForNewMessages() {
         }
     });
 
-    if (newCount > 0) {
-        console.log(`✅ Synced ${newCount} new conversation(s)`);
-    }
+    // Silent mode - no logging
 }
 
 function extractContactName(threadElement) {
@@ -225,18 +218,17 @@ async function syncMessageToCRM(messageData) {
         }
 
         const result = await response.json();
-        console.log(`✓ ${messageData.contactName}`);
-        // Notification disabled to prevent ERR_FAILED errors
-        // showNotification(`✓ ${messageData.contactName}`);
-        errorCount = 0; // Reset on success
+        // Silent mode - only log on first sync or every 10th sync
+        if (errorCount > 0 || Math.random() < 0.1) {
+            console.log(`✓ ${messageData.contactName}`);
+        }
+        errorCount = 0;
 
     } catch (error) {
         errorCount++;
-        console.error(`❌ Sync error (${errorCount}/${MAX_ERRORS}):`, error.message);
-
-        if (errorCount >= MAX_ERRORS) {
-            // Notification disabled to prevent ERR_FAILED errors
-            // showNotification('Too many errors - paused');
+        // Only log first error and max error state
+        if (errorCount === 1 || errorCount >= MAX_ERRORS) {
+            console.error(`❌ Sync error (${errorCount}/${MAX_ERRORS}):`, error.message);
         }
     }
 }
@@ -292,12 +284,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'CLEAR_PROCESSED_MESSAGES') {
         lastProcessedMessages.clear();
         chrome.storage.sync.set({ lastProcessedMessages: [] });
-        console.log('🗑️ Cleared processed messages cache');
         sendResponse({ success: true });
     }
 
     if (request.type === 'FORCE_CHECK') {
-        console.log('🔄 Manual check triggered');
         checkForNewMessages();
         sendResponse({ success: true });
     }
@@ -305,32 +295,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
 });
 
-// Add global helper for testing in Console
+// Debug helper (silent mode)
 window.linkedInCRMDebug = {
     clearCache: () => {
         lastProcessedMessages.clear();
         chrome.storage.local.set({ lastProcessedMessages: [] });
         errorCount = 0;
-        console.log('🗑️ Cleared processed messages cache and reset error count');
+        return 'Cleared cache and reset errors';
     },
     forceCheck: () => {
-        console.log('🔄 Forcing message check...');
-        lastCheckTime = 0; // Reset debounce
+        lastCheckTime = 0;
         checkForNewMessages();
+        return 'Forced check initiated';
     },
     showStats: () => {
-        console.log('📊 Extension Stats:', {
+        return {
             processedMessages: lastProcessedMessages.size,
-            errorCount: errorCount,
+            errorCount,
             maxErrors: MAX_ERRORS,
             syncEnabled,
             hasCredentials: !!(supabaseUrl && supabaseKey),
             paused: errorCount >= MAX_ERRORS
-        });
+        };
     },
     resetErrors: () => {
         errorCount = 0;
-        console.log('✅ Error count reset. Extension resumed.');
+        return 'Errors reset';
     }
 };
 
