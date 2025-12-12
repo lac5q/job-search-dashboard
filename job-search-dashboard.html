@@ -2168,6 +2168,17 @@ Luis
             saveContacts(contacts);
         }
 
+        function toggleNA(id) {
+            const contacts = getContacts();
+            const index = contacts.findIndex(c => c.id === id);
+            if (index === -1) return;
+
+            contacts[index].isNA = !contacts[index].isNA;
+            contacts[index].updatedAt = new Date().toISOString();
+
+            saveContacts(contacts);
+        }
+
         // ============================================
         // CONTACT TABLE
         // ============================================
@@ -2177,6 +2188,7 @@ Luis
             const searchTerm = document.getElementById('search-contacts').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
             const sourceFilter = document.getElementById('filter-source').value;
+            const showNA = document.getElementById('filter-show-na').checked;
 
             const filteredContacts = contacts.filter(c => {
                 const matchesSearch = !searchTerm ||
@@ -2185,7 +2197,8 @@ Luis
                     c.title?.toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || c.status === statusFilter;
                 const matchesSource = !sourceFilter || c.source === sourceFilter;
-                return matchesSearch && matchesStatus && matchesSource;
+                const matchesNA = showNA || !c.isNA;  // Hide NA by default, show if checkbox is checked
+                return matchesSearch && matchesStatus && matchesSource && matchesNA;
             });
 
             const today = new Date().toISOString().split('T')[0];
@@ -2752,6 +2765,7 @@ Luis
                         ${c.linkedin ? `<a class="btn-linkedin" href="${c.linkedin}" target="_blank">LinkedIn</a>` : ''}
                         <button class="btn-log" onclick="openOutreachModal('${c.id}')">📝 Log</button>
                         <button class="btn-edit" onclick="openEditContactModal('${c.id}')">✏️</button>
+                        <button class="btn-delete" onclick="toggleNA('${c.id}')" style="background: ${c.isNA ? '#f44336' : '#e0e0e0'}; color: ${c.isNA ? 'white' : '#666'};">${c.isNA ? '✓ NA' : 'NA'}</button>
                     </div>
                 </div>
             `;
