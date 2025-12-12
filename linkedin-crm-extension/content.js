@@ -151,26 +151,79 @@ function saveProcessedMessages() {
 }
 
 async function syncMessageToCRM(messageData) {
-    if (!supabaseUrl || !supabaseKey) {
-        console.warn('Supabase not configured');
-        return;
-    }
-
     try {
-        // Send to background script for syncing
-        chrome.runtime.sendMessage({
-            type: 'SYNC_LINKEDIN_MESSAGE',
-            data: messageData
-        }, (response) => {
-            if (response && response.success) {
-                console.log('Message synced to CRM:', messageData.contactName);
-                showNotification('LinkedIn message synced to CRM');
-            } else {
-                console.error('Failed to sync message:', response);
+        // Content scripts run in page context and CAN access Supabase directly!
+        const SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5NjAxODMsImV4cCI6MjA0OTUzNjE4M30.sRjuUO41AoN9lqCWmRKjxVDN48rVWnNyIz8n2ShdHqE';
+
+        console.log('Fetching existing conversations from Supabase...');
+
+        // Get existing data
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/job_search_data?id=eq.main`, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
             }
         });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch: HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        let linkedinConversations = data[0]?.linkedin_conversations || [];
+
+        // Add new conversation
+        const conversationLog = {
+            id: messageData.conversationId,
+            contactName: messageData.contactName,
+            lastMessage: messageData.message,
+            timestamp: messageData.timestamp,
+            url: messageData.url,
+            syncedAt: new Date().toISOString()
+        };
+
+        const existingIndex = linkedinConversations.findIndex(c => c.id === messageData.conversationId);
+        if (existingIndex >= 0) {
+            linkedinConversations[existingIndex] = conversationLog;
+            console.log('Updating existing conversation');
+        } else {
+            linkedinConversations.unshift(conversationLog);
+            console.log('Adding new conversation');
+        }
+
+        linkedinConversations = linkedinConversations.slice(0, 500);
+
+        // Update Supabase
+        console.log('Saving to Supabase...');
+        const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/job_search_data?id=eq.main`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                linkedin_conversations: linkedinConversations
+            })
+        });
+
+        if (!updateResponse.ok) {
+            throw new Error(`Update failed: HTTP ${updateResponse.status}`);
+        }
+
+        console.log('✅ Message synced to CRM:', messageData.contactName);
+        showNotification('LinkedIn message synced to CRM');
+
+        // Update stats in extension storage
+        chrome.storage.sync.set({
+            messageCount: linkedinConversations.length,
+            lastSync: new Date().toISOString()
+        });
+
     } catch (error) {
-        console.error('Error syncing to CRM:', error);
+        console.error('❌ Error syncing to CRM:', error);
+        showNotification('Sync failed: ' + error.message);
     }
 }
 

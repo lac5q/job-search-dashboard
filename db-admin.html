@@ -382,6 +382,79 @@
             testConnection();
             checkSchema();
         });
+
+        // Listen for messages from extension
+        window.addEventListener('message', async (event) => {
+            // Only accept messages from same origin
+            if (event.origin !== window.location.origin) return;
+
+            if (event.data.type === 'SYNC_LINKEDIN_MESSAGE') {
+                try {
+                    const messageData = event.data.data;
+
+                    // Get existing data
+                    const response = await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                        headers: {
+                            'apikey': supabaseKey,
+                            'Authorization': `Bearer ${supabaseKey}`
+                        }
+                    });
+
+                    const data = await response.json();
+                    let linkedinConversations = data[0]?.linkedin_conversations || [];
+
+                    // Add new conversation
+                    const conversationLog = {
+                        id: messageData.conversationId,
+                        contactName: messageData.contactName,
+                        lastMessage: messageData.message,
+                        timestamp: messageData.timestamp,
+                        url: messageData.url,
+                        syncedAt: new Date().toISOString()
+                    };
+
+                    const existingIndex = linkedinConversations.findIndex(c => c.id === messageData.conversationId);
+                    if (existingIndex >= 0) {
+                        linkedinConversations[existingIndex] = conversationLog;
+                    } else {
+                        linkedinConversations.unshift(conversationLog);
+                    }
+
+                    linkedinConversations = linkedinConversations.slice(0, 500);
+
+                    // Update Supabase
+                    await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': supabaseKey,
+                            'Authorization': `Bearer ${supabaseKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            linkedin_conversations: linkedinConversations
+                        })
+                    });
+
+                    // Send success response
+                    event.source.postMessage({
+                        type: 'SYNC_RESPONSE',
+                        success: true,
+                        conversationId: messageData.conversationId
+                    }, event.origin);
+
+                    console.log('✅ Synced LinkedIn message:', messageData.contactName);
+                } catch (error) {
+                    console.error('❌ Sync failed:', error);
+                    event.source.postMessage({
+                        type: 'SYNC_RESPONSE',
+                        success: false,
+                        error: error.message
+                    }, event.origin);
+                }
+            }
+        });
+
+        console.log('📡 LinkedIn CRM Sync relay ready');
     </script>
 </body>
 </html>
