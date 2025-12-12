@@ -2661,6 +2661,7 @@ Luis
             const searchTerm = document.getElementById('search-contacts').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
             const sourceFilter = document.getElementById('filter-source').value;
+            const showNA = document.getElementById('filter-show-na').checked;
 
             const filteredContacts = contacts.filter(c => {
                 const matchesSearch = !searchTerm ||
@@ -2669,7 +2670,8 @@ Luis
                     c.title?.toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || c.status === statusFilter;
                 const matchesSource = !sourceFilter || c.source === sourceFilter;
-                return matchesSearch && matchesStatus && matchesSource;
+                const matchesNA = showNA || !c.isNA;  // Hide NA by default, show if checkbox is checked
+                return matchesSearch && matchesStatus && matchesSource && matchesNA;
             });
 
             // Update CRM quick stats
