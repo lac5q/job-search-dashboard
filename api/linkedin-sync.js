@@ -49,13 +49,33 @@ export default async function handler(req, res) {
             syncedAt: new Date().toISOString()
         };
 
-        // Update or insert
+        // Prevent duplicates: Update if exists, insert if new
         const existingIndex = conversations.findIndex(c => c.id === messageData.conversationId);
         if (existingIndex >= 0) {
+            // Update existing conversation
             conversations[existingIndex] = conversationLog;
         } else {
-            conversations.unshift(conversationLog);
+            // Check for duplicate by contact name as backup
+            const nameMatch = conversations.findIndex(c =>
+                c.contactName.toLowerCase() === messageData.contactName.toLowerCase()
+            );
+
+            if (nameMatch >= 0 && !conversations[nameMatch].id.startsWith('contact-')) {
+                // Update if found by name and has real thread ID
+                conversations[nameMatch] = conversationLog;
+            } else {
+                // Insert new conversation
+                conversations.unshift(conversationLog);
+            }
         }
+
+        // Remove duplicates by ID (defensive)
+        const seen = new Set();
+        conversations = conversations.filter(c => {
+            if (seen.has(c.id)) return false;
+            seen.add(c.id);
+            return true;
+        });
 
         // Keep only last 500 conversations
         conversations = conversations.slice(0, 500);

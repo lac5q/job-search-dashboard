@@ -165,25 +165,35 @@ function extractTimestamp(threadElement) {
 
 function extractConversationId(threadElement) {
     try {
-        // Try to get thread ID from href
+        // Try to get thread ID from href (most reliable)
         const link = threadElement.querySelector('a[href*="messaging"]');
         if (link) {
             const href = link.getAttribute('href');
-            const match = href.match(/messaging\/thread\/([^/?]+)/);
-            if (match) return match[1];
+            const match = href.match(/messaging\/thread\/([^/?&#]+)/);
+            if (match) {
+                const threadId = match[1];
+                // Validate it's a real LinkedIn thread ID (alphanumeric, 20+ chars)
+                if (threadId.length > 15 && /^[a-zA-Z0-9_-]+$/.test(threadId)) {
+                    return threadId;
+                }
+            }
         }
 
-        // Try to get from data-control-id or other attributes
+        // Try to get from data attributes
         const controlId = threadElement.getAttribute('data-control-id') ||
                          threadElement.getAttribute('data-view-name') ||
                          threadElement.getAttribute('id');
-        if (controlId) return controlId;
+        if (controlId && controlId.length > 10) return controlId;
 
-        // Fallback: use contact name only (static per conversation)
+        // Fallback: use contact name (stable but less unique)
         const contactName = extractContactName(threadElement);
-        return contactName ? `contact-${contactName.replace(/\s+/g, '-').toLowerCase()}` : null;
+        if (contactName) {
+            // Create stable ID from contact name
+            return `contact-${contactName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+        }
+
+        return null;
     } catch (e) {
-        console.error('Error extracting conversation ID:', e);
         return null;
     }
 }
