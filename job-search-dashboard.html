@@ -1765,7 +1765,6 @@ Luis
                             existingMap.set(normalizedName, c);
                         }
                     });
-                    
                     let newContactsAdded = 0;
                     let contactsUpdated = 0;
 
@@ -2188,7 +2187,7 @@ Luis
             const searchTerm = document.getElementById('search-contacts').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
             const sourceFilter = document.getElementById('filter-source').value;
-            const showNA = document.getElementById('filter-show-na').checked;
+            const showNA = document.getElementById('filter-show-na')?.checked || false;
 
             const filteredContacts = contacts.filter(c => {
                 const matchesSearch = !searchTerm ||
@@ -2197,7 +2196,7 @@ Luis
                     c.title?.toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || c.status === statusFilter;
                 const matchesSource = !sourceFilter || c.source === sourceFilter;
-                const matchesNA = showNA || !c.isNA;  // Hide NA by default, show if checkbox is checked
+                const matchesNA = showNA || !c.isNA;  // Hide NA by default unless filter is checked
                 return matchesSearch && matchesStatus && matchesSource && matchesNA;
             });
 
@@ -2674,7 +2673,7 @@ Luis
             const searchTerm = document.getElementById('search-contacts').value.toLowerCase();
             const statusFilter = document.getElementById('filter-status').value;
             const sourceFilter = document.getElementById('filter-source').value;
-            const showNA = document.getElementById('filter-show-na').checked;
+            const showNA = document.getElementById('filter-show-na')?.checked || false;
 
             const filteredContacts = contacts.filter(c => {
                 const matchesSearch = !searchTerm ||
@@ -2683,7 +2682,7 @@ Luis
                     c.title?.toLowerCase().includes(searchTerm);
                 const matchesStatus = !statusFilter || c.status === statusFilter;
                 const matchesSource = !sourceFilter || c.source === sourceFilter;
-                const matchesNA = showNA || !c.isNA;  // Hide NA by default, show if checkbox is checked
+                const matchesNA = showNA || !c.isNA;  // Hide NA by default unless filter is checked
                 return matchesSearch && matchesStatus && matchesSource && matchesNA;
             });
 
