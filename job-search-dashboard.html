@@ -1916,6 +1916,29 @@ Luis
             }
         }
 
+        function cleanupBrokenContacts() {
+            let contacts = getContacts();
+            const originalCount = contacts.length;
+
+            // Remove contacts with undefined/invalid names
+            contacts = contacts.filter(c => {
+                return c.name &&
+                       c.name !== 'undefined' &&
+                       c.name !== 'undefined undefined' &&
+                       !c.name.includes('undefined');
+            });
+
+            const removedCount = originalCount - contacts.length;
+
+            if (removedCount > 0) {
+                saveContacts(contacts);
+                console.log(`Cleaned up ${removedCount} broken contacts`);
+                return removedCount;
+            }
+
+            return 0;
+        }
+
         function exportAllData() {
             const data = {
                 contacts: JSON.parse(localStorage.getItem('jobSearchContacts') || '[]'),
@@ -2873,7 +2896,10 @@ Luis
         // INITIALIZE
         // ============================================
 
-        // Initialize sync manager first (loads cloud data if configured)
+        // Clean up broken contacts first (from old bug)
+        cleanupBrokenContacts();
+
+        // Initialize sync manager (loads cloud data if configured)
         SyncManager.init();
 
         updateAllDisplays();
