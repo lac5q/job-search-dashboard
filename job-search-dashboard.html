@@ -1163,6 +1163,7 @@
                         <option value="other">Other</option>
                     </select>
                     <button class="btn btn-primary" onclick="openAddContactModal()">+ Add Contact</button>
+                    <button class="btn btn-success" onclick="syncLinkedInNow()" title="Import LinkedIn conversations from Supabase">🔄 Sync LinkedIn</button>
                     <a href="./network-explorer.html" class="btn btn-success" style="text-decoration: none;">Explore Network</a>
                 </div>
 
@@ -1678,6 +1679,11 @@ Luis
                                 updateAllDisplays();
                             }
                         }
+
+                        // ALWAYS load LinkedIn conversations (independent of cloud/local comparison)
+                        if (cloudData.linkedin_conversations && cloudData.linkedin_conversations.length > 0) {
+                            this.importLinkedInConversations(cloudData.linkedin_conversations);
+                        }
                     }
 
                     this.lastSync = new Date().toISOString();
@@ -1727,6 +1733,98 @@ Luis
                     this.isSyncing = false;
                     this.updateUI();
                 }
+            },
+
+            // Import LinkedIn conversations from Supabase and merge with contacts
+            importLinkedInConversations(linkedinConversations) {
+                try {
+                    const existingContacts = getContacts();
+                    const existingMap = new Map(existingContacts.map(c => [c.name.toLowerCase(), c]));
+                    let newContactsAdded = 0;
+                    let contactsUpdated = 0;
+
+                    linkedinConversations.forEach(conv => {
+                        const nameLower = conv.contactName.toLowerCase();
+
+                        // Check if contact already exists
+                        if (existingMap.has(nameLower)) {
+                            const existing = existingMap.get(nameLower);
+
+                            // Update last contact date if LinkedIn conversation is newer
+                            const convDate = new Date(conv.timestamp || conv.syncedAt);
+                            const existingDate = new Date(existing.lastContact || 0);
+
+                            if (convDate > existingDate) {
+                                existing.lastContact = conv.timestamp || conv.syncedAt;
+                                existing.notes = (existing.notes || '') +
+                                    `\n[LinkedIn ${new Date(conv.syncedAt).toLocaleDateString()}]: ${conv.lastMessage}`;
+                                existing.linkedInUrl = conv.url;
+                                contactsUpdated++;
+                            }
+                        } else {
+                            // Create new contact from LinkedIn conversation
+                            const newContact = {
+                                id: conv.id || `linkedin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                name: conv.contactName,
+                                company: '',
+                                title: '',
+                                email: '',
+                                linkedin: conv.url || '',
+                                linkedInUrl: conv.url || '',
+                                source: 'linkedin',
+                                status: 'contacted',
+                                addedDate: conv.timestamp || conv.syncedAt,
+                                lastContact: conv.timestamp || conv.syncedAt,
+                                notes: `LinkedIn conversation:\n${conv.lastMessage}`,
+                                outreach: [{
+                                    type: 'linkedin',
+                                    date: conv.timestamp || conv.syncedAt,
+                                    notes: conv.lastMessage
+                                }]
+                            };
+
+                            existingContacts.push(newContact);
+                            existingMap.set(nameLower, newContact);
+                            newContactsAdded++;
+                        }
+                    });
+
+                    // Save updated contacts
+                    if (newContactsAdded > 0 || contactsUpdated > 0) {
+                        saveContacts(existingContacts);
+                        console.log(`LinkedIn sync: ${newContactsAdded} new contacts, ${contactsUpdated} updated`);
+
+                        // Show notification
+                        if (newContactsAdded > 0) {
+                            this.showLinkedInNotification(newContactsAdded);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error importing LinkedIn conversations:', error);
+                }
+            },
+
+            showLinkedInNotification(count) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #0a66c2, #0077b5);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    z-index: 999999;
+                    font-family: -apple-system, system-ui, sans-serif;
+                    font-size: 14px;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.innerHTML = `<strong>✓ LinkedIn Sync</strong><br>${count} new contact${count > 1 ? 's' : ''} imported`;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => notification.remove(), 4000);
             }
         };
 
@@ -1755,6 +1853,51 @@ Luis
         function syncNow() {
             if (SyncManager.isConfigured()) {
                 SyncManager.syncToCloud();
+            }
+        }
+
+        async function syncLinkedInNow() {
+            if (!SyncManager.isConfigured()) {
+                alert('Please configure Supabase in Settings first');
+                return;
+            }
+
+            try {
+                const btn = event.target;
+                btn.disabled = true;
+                btn.textContent = '⏳ Syncing...';
+
+                const response = await fetch(`${SyncManager.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                    headers: {
+                        'apikey': SyncManager.supabaseKey,
+                        'Authorization': `Bearer ${SyncManager.supabaseKey}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch LinkedIn conversations');
+
+                const data = await response.json();
+                if (data && data.length > 0 && data[0].linkedin_conversations) {
+                    const linkedinConversations = data[0].linkedin_conversations;
+                    SyncManager.importLinkedInConversations(linkedinConversations);
+
+                    btn.textContent = `✓ Synced ${linkedinConversations.length} conversations`;
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = '🔄 Sync LinkedIn';
+                    }, 2000);
+                } else {
+                    btn.textContent = '⚠️ No conversations found';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = '🔄 Sync LinkedIn';
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('LinkedIn sync error:', error);
+                alert('Failed to sync LinkedIn conversations: ' + error.message);
+                event.target.disabled = false;
+                event.target.textContent = '🔄 Sync LinkedIn';
             }
         }
 
