@@ -1,0 +1,145 @@
+// LinkedIn CRM Sync - Background Service Worker
+
+console.log('LinkedIn CRM Sync: Background service worker started');
+
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === 'SYNC_LINKEDIN_MESSAGE') {
+        syncToSupabase(request.data)
+            .then(() => sendResponse({ success: true }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true; // Keep message channel open for async response
+    }
+});
+
+async function syncToSupabase(messageData) {
+    // Get Supabase credentials from storage
+    const settings = await chrome.storage.sync.get(['supabaseUrl', 'supabaseKey']);
+
+    if (!settings.supabaseUrl || !settings.supabaseKey) {
+        throw new Error('Supabase not configured');
+    }
+
+    // Get existing data
+    const response = await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+        headers: {
+            'apikey': settings.supabaseKey,
+            'Authorization': `Bearer ${settings.supabaseKey}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch existing data');
+    }
+
+    const data = await response.json();
+    const currentData = data[0] || { id: 'main' };
+
+    // Get or create linkedin_conversations array
+    let linkedinConversations = currentData.linkedin_conversations || [];
+
+    // Add new conversation log
+    const conversationLog = {
+        id: messageData.conversationId,
+        contactName: messageData.contactName,
+        lastMessage: messageData.message,
+        timestamp: messageData.timestamp,
+        url: messageData.url,
+        syncedAt: new Date().toISOString()
+    };
+
+    // Check if conversation already exists
+    const existingIndex = linkedinConversations.findIndex(c => c.id === messageData.conversationId);
+
+    if (existingIndex >= 0) {
+        // Update existing
+        linkedinConversations[existingIndex] = conversationLog;
+    } else {
+        // Add new
+        linkedinConversations.unshift(conversationLog);
+    }
+
+    // Keep only last 500 conversations
+    linkedinConversations = linkedinConversations.slice(0, 500);
+
+    // Update Supabase
+    const updateResponse = await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+        method: 'PATCH',
+        headers: {
+            'apikey': settings.supabaseKey,
+            'Authorization': `Bearer ${settings.supabaseKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+            linkedin_conversations: linkedinConversations
+        })
+    });
+
+    if (!updateResponse.ok) {
+        throw new Error('Failed to update Supabase');
+    }
+
+    console.log('Synced LinkedIn message to Supabase:', messageData.contactName);
+
+    // Also try to match with existing contact in CRM
+    await updateContactInCRM(messageData);
+
+    return true;
+}
+
+async function updateContactInCRM(messageData) {
+    try {
+        const settings = await chrome.storage.sync.get(['supabaseUrl', 'supabaseKey']);
+
+        // Get existing contacts
+        const response = await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+            headers: {
+                'apikey': settings.supabaseKey,
+                'Authorization': `Bearer ${settings.supabaseKey}`
+            }
+        });
+
+        const data = await response.json();
+        const contacts = data[0]?.contacts || [];
+
+        // Try to find matching contact by name
+        const contactIndex = contacts.findIndex(c => {
+            const fullName = `${c['First Name']} ${c['Last Name']}`.toLowerCase();
+            return fullName.includes(messageData.contactName.toLowerCase()) ||
+                   messageData.contactName.toLowerCase().includes(fullName);
+        });
+
+        if (contactIndex >= 0) {
+            // Update contact with last LinkedIn interaction
+            contacts[contactIndex].lastLinkedInMessage = messageData.message;
+            contacts[contactIndex].lastLinkedInContact = messageData.timestamp;
+            contacts[contactIndex].linkedInConversationId = messageData.conversationId;
+
+            // Update in Supabase
+            await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': settings.supabaseKey,
+                    'Authorization': `Bearer ${settings.supabaseKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ contacts })
+            });
+
+            console.log('Updated contact in CRM:', contacts[contactIndex]['First Name'], contacts[contactIndex]['Last Name']);
+        }
+    } catch (error) {
+        console.error('Error updating contact in CRM:', error);
+        // Don't throw - conversation was still logged
+    }
+}
+
+// Show notification when new message is synced
+chrome.notifications?.create({
+    type: 'basic',
+    iconUrl: 'icons/icon48.png',
+    title: 'LinkedIn CRM Sync',
+    message: 'New LinkedIn conversation synced to your CRM'
+});
