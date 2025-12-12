@@ -1162,6 +1162,10 @@
                         <option value="company-direct">Company Direct</option>
                         <option value="other">Other</option>
                     </select>
+                    <label style="display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer;">
+                        <input type="checkbox" id="filter-show-na" onchange="renderCRM()" style="cursor: pointer;">
+                        Show NA
+                    </label>
                     <button class="btn btn-primary" onclick="openAddContactModal()">+ Add Contact</button>
                     <button class="btn btn-success" onclick="syncLinkedInNow()" title="Import LinkedIn conversations from Supabase">🔄 Sync LinkedIn</button>
                     <a href="./network-explorer.html" class="btn btn-success" style="text-decoration: none;">Explore Network</a>
@@ -1551,20 +1555,12 @@ Luis
             isSyncing: false,
             lastSync: null,
 
-            // Hardcoded defaults (user requirement - no manual entry needed)
-            DEFAULT_SUPABASE_URL: 'https://dkufgfmwqsxecylyvidi.supabase.co',
-            DEFAULT_SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTIxMTgsImV4cCI6MjA4MTA2ODExOH0.GPdoDd7z5nuGx-oQ2l6CQX-fdz7T4CdUpG_PwORZB_g',
-
             init() {
-                this.supabaseUrl = localStorage.getItem('supabaseUrl') || this.DEFAULT_SUPABASE_URL;
-                this.supabaseKey = localStorage.getItem('supabaseKey') || this.DEFAULT_SUPABASE_KEY;
+                // SECURITY: Credentials should only be stored in localStorage, never hardcoded in source
+                // Users must configure Supabase credentials through the Settings UI
+                this.supabaseUrl = localStorage.getItem('supabaseUrl');
+                this.supabaseKey = localStorage.getItem('supabaseKey');
                 this.lastSync = localStorage.getItem('lastSync');
-
-                // Auto-save defaults if not already saved
-                if (!localStorage.getItem('supabaseUrl') || !localStorage.getItem('supabaseKey')) {
-                    localStorage.setItem('supabaseUrl', this.DEFAULT_SUPABASE_URL);
-                    localStorage.setItem('supabaseKey', this.DEFAULT_SUPABASE_KEY);
-                }
 
                 this.updateUI();
 
@@ -1751,7 +1747,25 @@ Luis
                 try {
                     console.log('Importing LinkedIn conversations:', linkedinConversations.length);
                     const existingContacts = getContacts();
-                    const existingMap = new Map(existingContacts.map(c => [c.name.toLowerCase(), c]));
+                    
+                    // Helper function to normalize contact names (handles both 'name' and 'firstName'/'lastName' formats)
+                    const getContactName = (contact) => {
+                        if (contact.name) return contact.name;
+                        if (contact.firstName || contact.lastName) {
+                            return `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
+                        }
+                        return 'Unknown Contact';
+                    };
+                    
+                    // Build map using normalized names (handles both contact formats)
+                    const existingMap = new Map();
+                    existingContacts.forEach(c => {
+                        const normalizedName = getContactName(c).toLowerCase();
+                        if (normalizedName && normalizedName !== 'unknown contact') {
+                            existingMap.set(normalizedName, c);
+                        }
+                    });
+                    
                     let newContactsAdded = 0;
                     let contactsUpdated = 0;
 
