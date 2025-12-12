@@ -102,30 +102,20 @@ async function saveSettings() {
 }
 
 async function testConnection() {
-    const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
-    const supabaseKey = document.getElementById('supabaseKey').value.trim();
-
-    if (!supabaseUrl || !supabaseKey) {
-        showMessage('Please enter Supabase credentials first', true);
-        return;
-    }
-
     document.getElementById('testBtn').textContent = 'Testing...';
     document.getElementById('testBtn').disabled = true;
 
     try {
-        const response = await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
-            headers: {
-                'apikey': supabaseKey,
-                'Authorization': `Bearer ${supabaseKey}`
-            }
+        // Send test request through background worker (which has proper permissions)
+        const response = await chrome.runtime.sendMessage({
+            type: 'TEST_CONNECTION'
         });
 
-        if (response.ok) {
+        if (response.success) {
             showMessage('✓ Connection successful!', false);
             updateStatus();
         } else {
-            showMessage('Connection failed. Check your credentials.', true);
+            showMessage('Connection failed: ' + (response.error || 'Unknown error'), true);
         }
     } catch (error) {
         showMessage('Connection error: ' + error.message, true);
