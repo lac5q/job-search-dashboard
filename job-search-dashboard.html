@@ -2187,7 +2187,7 @@ Luis
                     return `
                         <tr class="${rowClass}">
                             <td>
-                                <strong>${c.firstName} ${c.lastName}</strong>
+                                <strong>${c.name || (c.firstName + ' ' + c.lastName) || 'Unknown'}</strong>
                                 ${c.linkedin ? `<br><a href="${c.linkedin}" target="_blank" style="font-size: 0.8em;">LinkedIn</a>` : ''}
                             </td>
                             <td>${c.company || '-'}</td>
@@ -2689,7 +2689,7 @@ Luis
                 <div class="contact-card ${priorityClass}">
                     <div class="contact-card-header">
                         <div>
-                            <div class="contact-card-name">${c.firstName} ${c.lastName}</div>
+                            <div class="contact-card-name">${c.name || (c.firstName + ' ' + c.lastName) || 'Unknown'}</div>
                             <div class="contact-card-title">${c.title || 'Title not specified'}</div>
                             <div class="contact-card-company">${c.company || 'Company not specified'}</div>
                         </div>
