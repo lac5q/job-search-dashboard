@@ -101,3 +101,51 @@ The user maintains a live job search dashboard on Vercel that:
 **HTML file updated? → Deploy to Vercel immediately**
 
 This is the #1 rule for this project. Don't complete a task involving HTML files without deploying.
+
+---
+
+## 📋 Action Items Management (Obsidian Vault)
+
+**RULE: When the user mentions tasks, action items, or "things to do", automatically update the Obsidian vault.**
+
+### Action Items Location:
+- **File**: `/Users/lcalderon/github/JobHunt/Jobhunt/20-Actions/Action Items.md`
+- **Dashboard**: `/Users/lcalderon/github/JobHunt/Jobhunt/20-Actions/Action Dashboard.md`
+- **Workflow Guide**: `/Users/lcalderon/github/JobHunt/Jobhunt/20-Actions/ACTION-ITEMS-WORKFLOW.md`
+
+### When to Update Action Items:
+- User mentions tasks or action items
+- User says "add this to my todo list" or similar
+- User asks "what are my action items?" (read and summarize)
+- After planning sessions, add next steps as action items
+
+### Action Item Format:
+```markdown
+- [ ] Task description #tag1 #tag2 #next-action
+```
+
+### Available Tags:
+- `#next-action` - High priority, do next
+- `#jobhunt` - Job search related
+- `#networking` - Networking/outreach
+- `#admin` - Administrative tasks
+- `#research` - Research tasks
+- `#follow-up` - Follow-up items
+- `#urgent` - Urgent items
+
+### Sections to Use:
+- `## Inbox` - New items, unsorted
+- `## Job Search` - Job applications, interviews, etc.
+- `## Networking` - Outreach, connections, messages
+- `## Admin` - Administrative tasks
+- `## Research` - Company research, role research
+- `## Follow-ups` - Items requiring follow-up
+
+### Update Process:
+1. Read current `Action Items.md`
+2. Add new items to appropriate section
+3. Update the `updated` timestamp in frontmatter (format: `YYYY-MM-DD HH:MM:SS PST`)
+4. Use appropriate tags
+5. Save the file
+
+**This ensures action items persist across all Cursor sessions and sync with Obsidian automatically.**
