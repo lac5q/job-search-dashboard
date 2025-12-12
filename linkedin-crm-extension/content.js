@@ -226,7 +226,8 @@ async function syncMessageToCRM(messageData) {
 
         const result = await response.json();
         console.log(`✓ ${messageData.contactName}`);
-        showNotification(`✓ ${messageData.contactName}`);
+        // Notification disabled to prevent ERR_FAILED errors
+        // showNotification(`✓ ${messageData.contactName}`);
         errorCount = 0; // Reset on success
 
     } catch (error) {
@@ -234,7 +235,8 @@ async function syncMessageToCRM(messageData) {
         console.error(`❌ Sync error (${errorCount}/${MAX_ERRORS}):`, error.message);
 
         if (errorCount >= MAX_ERRORS) {
-            showNotification('Too many errors - paused');
+            // Notification disabled to prevent ERR_FAILED errors
+            // showNotification('Too many errors - paused');
         }
     }
 }
@@ -266,19 +268,19 @@ function showNotification(message) {
     }, 3000);
 }
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
+// CSS animations disabled to prevent ERR_FAILED errors
+// const style = document.createElement('style');
+// style.textContent = `
+//     @keyframes slideIn {
+//         from { transform: translateX(100%); opacity: 0; }
+//         to { transform: translateX(0); opacity: 1; }
+//     }
+//     @keyframes slideOut {
+//         from { transform: translateX(0); opacity: 1; }
+//         to { transform: translateX(100%); opacity: 0; }
+//     }
+// `;
+// document.head.appendChild(style);
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
