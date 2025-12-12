@@ -1695,6 +1695,14 @@ Luis
 
                     this.lastSync = new Date().toISOString();
                     localStorage.setItem('lastSync', this.lastSync);
+
+                    // Deduplicate after loading cloud data
+                    if (typeof deduplicateContacts === 'function') {
+                        const dedupeResult = deduplicateContacts();
+                        if (dedupeResult.removed > 0) {
+                            console.log(`Removed ${dedupeResult.removed} duplicates after cloud sync`);
+                        }
+                    }
                 } catch (error) {
                     console.error('Cloud load error:', error);
                 } finally {
@@ -1821,6 +1829,12 @@ Luis
                     if (newContactsAdded > 0 || contactsUpdated > 0) {
                         saveContacts(existingContacts);
                         console.log(`LinkedIn sync: ${newContactsAdded} new contacts, ${contactsUpdated} updated`);
+
+                        // Deduplicate after import
+                        const dedupeResult = deduplicateContacts();
+                        if (dedupeResult.removed > 0) {
+                            console.log(`Removed ${dedupeResult.removed} duplicates after LinkedIn import`);
+                        }
 
                         // Show notification
                         if (newContactsAdded > 0) {
@@ -1950,6 +1964,102 @@ Luis
             }
 
             return 0;
+        }
+
+        function deduplicateContacts() {
+            let contacts = getContacts();
+            const originalCount = contacts.length;
+
+            // Group contacts by normalized name
+            const nameGroups = {};
+            contacts.forEach(contact => {
+                const normalizedName = (contact.name || `${contact.firstName} ${contact.lastName}`).toLowerCase().trim();
+                if (!nameGroups[normalizedName]) {
+                    nameGroups[normalizedName] = [];
+                }
+                nameGroups[normalizedName].push(contact);
+            });
+
+            // Merge duplicates
+            const mergedContacts = [];
+            Object.entries(nameGroups).forEach(([name, group]) => {
+                if (group.length === 1) {
+                    // No duplicates, keep as is
+                    mergedContacts.push(group[0]);
+                } else {
+                    // Merge duplicates - keep best data from each
+                    const merged = {
+                        id: group[0].id, // Keep first ID
+                        name: group[0].name || `${group[0].firstName} ${group[0].lastName}`,
+                        firstName: group.find(c => c.firstName)?.firstName || '',
+                        lastName: group.find(c => c.lastName)?.lastName || '',
+                        company: group.find(c => c.company)?.company || '',
+                        title: group.find(c => c.title)?.title || '',
+                        email: group.find(c => c.email)?.email || '',
+                        phone: group.find(c => c.phone)?.phone || '',
+                        linkedin: group.find(c => c.linkedin)?.linkedin || '',
+                        linkedInUrl: group.find(c => c.linkedInUrl)?.linkedInUrl || '',
+                        source: group[0].source || 'linkedin',
+                        status: group.find(c => c.status && c.status !== 'new')?.status || group[0].status || 'new',
+
+                        // Merge dates - use earliest added, latest contacted
+                        addedDate: group.map(c => c.addedDate).filter(Boolean).sort()[0] || new Date().toISOString(),
+                        lastContact: group.map(c => c.lastContact).filter(Boolean).sort().reverse()[0] || null,
+                        lastContacted: group.map(c => c.lastContacted).filter(Boolean).sort().reverse()[0] || null,
+                        followUp: group.find(c => c.followUp)?.followUp || null,
+
+                        // Merge notes - concatenate all unique notes
+                        notes: [...new Set(group.map(c => c.notes).filter(Boolean))].join('\n\n'),
+
+                        // Merge outreach history - combine all, remove duplicates by date+type
+                        outreach: (() => {
+                            const allOutreach = group.flatMap(c => c.outreach || []);
+                            const unique = [];
+                            const seen = new Set();
+                            allOutreach.forEach(o => {
+                                const key = `${o.date}-${o.type}-${o.notes}`;
+                                if (!seen.has(key)) {
+                                    seen.add(key);
+                                    unique.push(o);
+                                }
+                            });
+                            return unique.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        })(),
+
+                        outreachHistory: (() => {
+                            const allHistory = group.flatMap(c => c.outreachHistory || []);
+                            const unique = [];
+                            const seen = new Set();
+                            allHistory.forEach(h => {
+                                const key = `${h.date}-${h.type}`;
+                                if (!seen.has(key)) {
+                                    seen.add(key);
+                                    unique.push(h);
+                                }
+                            });
+                            return unique.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        })(),
+
+                        // Keep NA status if ANY copy was marked NA
+                        isNA: group.some(c => c.isNA),
+
+                        // Use most recent update time
+                        updatedAt: group.map(c => c.updatedAt).filter(Boolean).sort().reverse()[0] || new Date().toISOString()
+                    };
+
+                    mergedContacts.push(merged);
+                }
+            });
+
+            const removedCount = originalCount - mergedContacts.length;
+
+            if (removedCount > 0) {
+                saveContacts(mergedContacts);
+                console.log(`Deduplicated ${removedCount} duplicate contacts (${originalCount} → ${mergedContacts.length})`);
+                return { removed: removedCount, before: originalCount, after: mergedContacts.length };
+            }
+
+            return { removed: 0, before: originalCount, after: mergedContacts.length };
         }
 
         function exportAllData() {
@@ -2927,6 +3037,9 @@ Luis
 
         // Clean up broken contacts first (from old bug)
         cleanupBrokenContacts();
+
+        // Deduplicate contacts on page load
+        deduplicateContacts();
 
         // Initialize sync manager (loads cloud data if configured)
         SyncManager.init();
