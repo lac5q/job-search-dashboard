@@ -1551,10 +1551,21 @@ Luis
             isSyncing: false,
             lastSync: null,
 
+            // Hardcoded defaults (user requirement - no manual entry needed)
+            DEFAULT_SUPABASE_URL: 'https://dkufgfmwqsxecylyvidi.supabase.co',
+            DEFAULT_SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTIxMTgsImV4cCI6MjA4MTA2ODExOH0.GPdoDd7z5nuGx-oQ2l6CQX-fdz7T4CdUpG_PwORZB_g',
+
             init() {
-                this.supabaseUrl = localStorage.getItem('supabaseUrl');
-                this.supabaseKey = localStorage.getItem('supabaseKey');
+                this.supabaseUrl = localStorage.getItem('supabaseUrl') || this.DEFAULT_SUPABASE_URL;
+                this.supabaseKey = localStorage.getItem('supabaseKey') || this.DEFAULT_SUPABASE_KEY;
                 this.lastSync = localStorage.getItem('lastSync');
+
+                // Auto-save defaults if not already saved
+                if (!localStorage.getItem('supabaseUrl') || !localStorage.getItem('supabaseKey')) {
+                    localStorage.setItem('supabaseUrl', this.DEFAULT_SUPABASE_URL);
+                    localStorage.setItem('supabaseKey', this.DEFAULT_SUPABASE_KEY);
+                }
+
                 this.updateUI();
 
                 if (this.isConfigured()) {
