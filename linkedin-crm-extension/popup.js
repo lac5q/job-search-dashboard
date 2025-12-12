@@ -7,6 +7,10 @@ document.getElementById('saveBtn').addEventListener('click', saveSettings);
 document.getElementById('testBtn').addEventListener('click', testConnection);
 
 async function loadSettings() {
+    // Default credentials - saved in code
+    const DEFAULT_SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
+    const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5NjAxODMsImV4cCI6MjA0OTUzNjE4M30.sRjuUO41AoN9lqCWmRKjxVDN48rVWnNyIz8n2ShdHqE';
+
     const settings = await chrome.storage.sync.get([
         'syncEnabled',
         'supabaseUrl',
@@ -16,9 +20,21 @@ async function loadSettings() {
         'linkedin_conversations'
     ]);
 
+    // Auto-populate with defaults if not set
+    const supabaseUrl = settings.supabaseUrl || DEFAULT_SUPABASE_URL;
+    const supabaseKey = settings.supabaseKey || DEFAULT_SUPABASE_KEY;
+
+    // Save defaults to storage if not already saved
+    if (!settings.supabaseUrl || !settings.supabaseKey) {
+        await chrome.storage.sync.set({
+            supabaseUrl: DEFAULT_SUPABASE_URL,
+            supabaseKey: DEFAULT_SUPABASE_KEY
+        });
+    }
+
     // Populate fields
-    document.getElementById('supabaseUrl').value = settings.supabaseUrl || '';
-    document.getElementById('supabaseKey').value = settings.supabaseKey || '';
+    document.getElementById('supabaseUrl').value = supabaseUrl;
+    document.getElementById('supabaseKey').value = supabaseKey;
 
     // Set toggle state
     const syncEnabled = settings.syncEnabled !== false;

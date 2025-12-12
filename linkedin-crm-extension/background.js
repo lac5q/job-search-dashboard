@@ -13,18 +13,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function syncToSupabase(messageData) {
-    // Get Supabase credentials from storage
+    // Default credentials - saved in code
+    const DEFAULT_SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
+    const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5NjAxODMsImV4cCI6MjA0OTUzNjE4M30.sRjuUO41AoN9lqCWmRKjxVDN48rVWnNyIz8n2ShdHqE';
+
+    // Get Supabase credentials from storage (or use defaults)
     const settings = await chrome.storage.sync.get(['supabaseUrl', 'supabaseKey']);
 
-    if (!settings.supabaseUrl || !settings.supabaseKey) {
-        throw new Error('Supabase not configured');
-    }
+    const supabaseUrl = settings.supabaseUrl || DEFAULT_SUPABASE_URL;
+    const supabaseKey = settings.supabaseKey || DEFAULT_SUPABASE_KEY;
 
     // Get existing data
-    const response = await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+    const response = await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
         headers: {
-            'apikey': settings.supabaseKey,
-            'Authorization': `Bearer ${settings.supabaseKey}`,
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
             'Content-Type': 'application/json'
         }
     });
@@ -64,11 +67,11 @@ async function syncToSupabase(messageData) {
     linkedinConversations = linkedinConversations.slice(0, 500);
 
     // Update Supabase
-    const updateResponse = await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+    const updateResponse = await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
         method: 'PATCH',
         headers: {
-            'apikey': settings.supabaseKey,
-            'Authorization': `Bearer ${settings.supabaseKey}`,
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation'
         },
@@ -91,13 +94,19 @@ async function syncToSupabase(messageData) {
 
 async function updateContactInCRM(messageData) {
     try {
+        // Default credentials - saved in code
+        const DEFAULT_SUPABASE_URL = 'https://dkufgfmwqsxecylyvidi.supabase.co';
+        const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrdWZnZm13cXN4ZWN5bHl2aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5NjAxODMsImV4cCI6MjA0OTUzNjE4M30.sRjuUO41AoN9lqCWmRKjxVDN48rVWnNyIz8n2ShdHqE';
+
         const settings = await chrome.storage.sync.get(['supabaseUrl', 'supabaseKey']);
+        const supabaseUrl = settings.supabaseUrl || DEFAULT_SUPABASE_URL;
+        const supabaseKey = settings.supabaseKey || DEFAULT_SUPABASE_KEY;
 
         // Get existing contacts
-        const response = await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+        const response = await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
             headers: {
-                'apikey': settings.supabaseKey,
-                'Authorization': `Bearer ${settings.supabaseKey}`
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
             }
         });
 
@@ -118,11 +127,11 @@ async function updateContactInCRM(messageData) {
             contacts[contactIndex].linkedInConversationId = messageData.conversationId;
 
             // Update in Supabase
-            await fetch(`${settings.supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
+            await fetch(`${supabaseUrl}/rest/v1/job_search_data?id=eq.main`, {
                 method: 'PATCH',
                 headers: {
-                    'apikey': settings.supabaseKey,
-                    'Authorization': `Bearer ${settings.supabaseKey}`,
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ contacts })
