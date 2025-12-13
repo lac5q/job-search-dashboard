@@ -1441,6 +1441,17 @@
             <div class="section">
                 <h2>Performance Analytics</h2>
 
+                <!-- AI Message Analytics -->
+                <div class="chart-container" style="margin-bottom: 30px;">
+                    <h3>AI Message Analytics</h3>
+                    <div id="message-analytics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <!-- Stats cards populated by JS -->
+                    </div>
+                    <div id="message-breakdown" style="margin-top: 20px;">
+                        <!-- Message type breakdown -->
+                    </div>
+                </div>
+
                 <div class="chart-container">
                     <h3>Weekly Activity</h3>
                     <div class="bar-chart" id="weekly-chart">
@@ -1561,6 +1572,19 @@ Luis
                 <h2 id="modal-title">Add Contact</h2>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
+
+            <!-- Tabs for Contact Details and Message History -->
+            <div style="display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px;">
+                <button type="button" id="contact-details-tab" class="modal-tab active" onclick="switchContactTab('details')" style="flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-weight: 600; border-bottom: 3px solid #667eea;">
+                    Contact Details
+                </button>
+                <button type="button" id="message-history-tab" class="modal-tab" onclick="switchContactTab('history')" style="flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent;">
+                    Message History <span id="message-count-badge" style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; margin-left: 5px;">0</span>
+                </button>
+            </div>
+
+            <!-- Contact Details Form -->
+            <div id="contact-details-content">
             <form id="contact-form" onsubmit="saveContact(event)">
                 <input type="hidden" id="contact-id">
 
@@ -1653,6 +1677,14 @@ Luis
                     <button type="submit" class="btn btn-primary">Save Contact</button>
                 </div>
             </form>
+            </div>
+
+            <!-- Message History Content -->
+            <div id="message-history-content" style="display: none;">
+                <div id="message-history-list" style="max-height: 400px; overflow-y: auto;">
+                    <p style="text-align: center; color: #888; padding: 40px;">No messages sent yet</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2506,11 +2538,160 @@ Luis
             document.getElementById('contact-followup').value = contact.followUp || '';
             document.getElementById('contact-notes').value = contact.notes || '';
 
+            // Load message history for this contact
+            loadMessageHistory(contact);
+
+            // Reset to details tab
+            switchContactTab('details');
+
             document.getElementById('contact-modal').classList.add('active');
         }
 
         function closeModal() {
             document.getElementById('contact-modal').classList.remove('active');
+            // Reset to details tab when closing
+            switchContactTab('details');
+        }
+
+        function switchContactTab(tabName) {
+            // Toggle content visibility
+            const detailsContent = document.getElementById('contact-details-content');
+            const historyContent = document.getElementById('message-history-content');
+            const detailsTab = document.getElementById('contact-details-tab');
+            const historyTab = document.getElementById('message-history-tab');
+
+            if (tabName === 'details') {
+                detailsContent.style.display = 'block';
+                historyContent.style.display = 'none';
+                detailsTab.style.borderBottom = '3px solid #667eea';
+                detailsTab.style.color = '#667eea';
+                historyTab.style.borderBottom = '3px solid transparent';
+                historyTab.style.color = '#666';
+            } else if (tabName === 'history') {
+                detailsContent.style.display = 'none';
+                historyContent.style.display = 'block';
+                detailsTab.style.borderBottom = '3px solid transparent';
+                detailsTab.style.color = '#666';
+                historyTab.style.borderBottom = '3px solid #667eea';
+                historyTab.style.color = '#667eea';
+            }
+        }
+
+        function loadMessageHistory(contact) {
+            const historyList = document.getElementById('message-history-list');
+            const countBadge = document.getElementById('message-count-badge');
+
+            // Get message history from contact
+            const messageHistory = contact.messageHistory || [];
+
+            // Update badge count
+            countBadge.textContent = messageHistory.length;
+
+            if (messageHistory.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #888; padding: 40px;">No messages sent yet</p>';
+                return;
+            }
+
+            // Sort by date (newest first)
+            const sortedMessages = [...messageHistory].sort((a, b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+            // Build message cards
+            let html = '';
+            sortedMessages.forEach(msg => {
+                const date = new Date(msg.date);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Determine account icon
+                const accountIcon = msg.sentVia === 'personal' ? '📧' : msg.sentVia === 'work' ? '💼' : '📧';
+                const accountLabel = msg.sentVia === 'personal' ? 'Personal' : msg.sentVia === 'work' ? 'Work' : 'Gmail';
+                const accountColor = msg.sentVia === 'personal' ? '#667eea' : '#9b59b6';
+
+                // Message type label
+                const typeLabel = msg.type ? msg.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Email';
+
+                // Body preview (first 100 chars)
+                const bodyPreview = msg.body ?
+                    (msg.body.length > 100 ? msg.body.substring(0, 100) + '...' : msg.body) :
+                    '';
+
+                html += `
+                    <div style="padding: 15px; border-left: 4px solid ${accountColor}; background: #f8f9fa; border-radius: 4px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${msg.subject || '(No subject)'}</div>
+                                <div style="font-size: 0.85em; color: #666;">${formattedDate}</div>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0; margin-left: 10px;">
+                                ${msg.aiGenerated ? '<span style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: 600;">AI Generated</span>' : ''}
+                                <span style="background: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; display: flex; align-items: center; gap: 4px;">
+                                    <span>${accountIcon}</span>
+                                    <span>${accountLabel}</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.85em; color: #555; background: white; padding: 10px; border-radius: 4px; margin-bottom: 8px;">
+                            ${bodyPreview}
+                        </div>
+                        <div style="display: flex; gap: 10px; font-size: 0.8em; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; gap: 10px;">
+                                <span style="padding: 3px 8px; background: white; border-radius: 3px; color: #666;">
+                                    ${typeLabel}
+                                </span>
+                                ${msg.responded ?
+                                    `<span style="padding: 3px 8px; background: #e8f5e9; color: #2e7d32; border-radius: 3px;">✓ Responded</span>` :
+                                    `<span style="padding: 3px 8px; background: #fff3cd; color: #856404; border-radius: 3px;">⏳ Awaiting Response</span>`
+                                }
+                            </div>
+                            <button onclick="toggleMessageResponse('${contact.id}', '${msg.id}')" style="padding: 4px 12px; background: ${msg.responded ? '#dc3545' : '#28a745'}; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: 600;">
+                                ${msg.responded ? 'Mark Unresponded' : 'Mark Responded'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            historyList.innerHTML = html;
+        }
+
+        function toggleMessageResponse(contactId, messageId) {
+            const contacts = getContacts();
+            const contact = contacts.find(c => c.id === contactId);
+            if (!contact || !contact.messageHistory) return;
+
+            const message = contact.messageHistory.find(m => m.id === messageId);
+            if (!message) return;
+
+            // Toggle response status
+            message.responded = !message.responded;
+
+            // If marking as responded, set response date
+            if (message.responded) {
+                message.responseDate = new Date().toISOString();
+            } else {
+                message.responseDate = null;
+            }
+
+            // Save changes
+            saveContacts(contacts);
+
+            // Reload message history to reflect changes
+            loadMessageHistory(contact);
+
+            // Update analytics if on analytics tab
+            const analyticsTab = document.getElementById('analytics');
+            if (analyticsTab && !analyticsTab.classList.contains('active')) {
+                // Not currently viewing analytics, but refresh will happen when they switch to it
+            } else {
+                renderAnalytics();
+            }
         }
 
         function saveContact(event) {
@@ -2518,6 +2699,9 @@ Luis
 
             const contacts = getContacts();
             const id = document.getElementById('contact-id').value;
+
+            // Find existing contact to preserve messageHistory and other data
+            const existingContact = id ? contacts.find(c => c.id === id) : null;
 
             const contactData = {
                 id: id || Date.now().toString(),
@@ -2533,8 +2717,11 @@ Luis
                 lastContacted: document.getElementById('contact-last-contacted').value,
                 followUp: document.getElementById('contact-followup').value,
                 notes: document.getElementById('contact-notes').value,
-                createdAt: id ? contacts.find(c => c.id === id)?.createdAt : new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                createdAt: existingContact?.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                // Preserve message history and outreach data
+                messageHistory: existingContact?.messageHistory || [],
+                outreach: existingContact?.outreach || []
             };
 
             if (id) {
@@ -2734,8 +2921,140 @@ Luis
         // ANALYTICS
         // ============================================
 
+        function renderMessageAnalytics(contacts) {
+            // Aggregate all messages from all contacts
+            let allMessages = [];
+            contacts.forEach(contact => {
+                if (contact.messageHistory && Array.isArray(contact.messageHistory)) {
+                    contact.messageHistory.forEach(msg => {
+                        allMessages.push({
+                            ...msg,
+                            contactName: `${contact.firstName} ${contact.lastName}`,
+                            contactId: contact.id
+                        });
+                    });
+                }
+            });
+
+            // Calculate stats
+            const totalMessages = allMessages.length;
+            const aiGenerated = allMessages.filter(m => m.aiGenerated).length;
+            const personalAccount = allMessages.filter(m => m.sentVia === 'personal').length;
+            const workAccount = allMessages.filter(m => m.sentVia === 'work').length;
+            const responded = allMessages.filter(m => m.responded).length;
+            const responseRate = totalMessages > 0 ? Math.round((responded / totalMessages) * 100) : 0;
+
+            // Stats cards
+            const analyticsDiv = document.getElementById('message-analytics');
+            analyticsDiv.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; font-weight: 700;">${totalMessages}</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">Total Messages</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; font-weight: 700;">${aiGenerated}</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">AI Generated</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; font-weight: 700;">${responded}</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">Responded</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; font-weight: 700;">${responseRate}%</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">Response Rate</div>
+                </div>
+            `;
+
+            // Message breakdown
+            const breakdownDiv = document.getElementById('message-breakdown');
+
+            if (totalMessages === 0) {
+                breakdownDiv.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No messages sent yet. Use the AI panel to compose your first message!</p>';
+                return;
+            }
+
+            // Group by type
+            const messagesByType = {};
+            allMessages.forEach(msg => {
+                const type = msg.type || 'email';
+                if (!messagesByType[type]) {
+                    messagesByType[type] = {
+                        count: 0,
+                        responded: 0,
+                        aiGenerated: 0
+                    };
+                }
+                messagesByType[type].count++;
+                if (msg.responded) messagesByType[type].responded++;
+                if (msg.aiGenerated) messagesByType[type].aiGenerated++;
+            });
+
+            // Build breakdown table
+            let breakdownHTML = `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0;">Message Breakdown by Type</h4>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #dee2e6;">
+                                <th style="text-align: left; padding: 10px;">Type</th>
+                                <th style="text-align: center; padding: 10px;">Total</th>
+                                <th style="text-align: center; padding: 10px;">AI Generated</th>
+                                <th style="text-align: center; padding: 10px;">Responded</th>
+                                <th style="text-align: center; padding: 10px;">Response Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            Object.entries(messagesByType).forEach(([type, stats]) => {
+                const typeLabel = type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const rate = Math.round((stats.responded / stats.count) * 100);
+
+                breakdownHTML += `
+                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 10px;">${typeLabel}</td>
+                        <td style="text-align: center; padding: 10px;"><strong>${stats.count}</strong></td>
+                        <td style="text-align: center; padding: 10px;">${stats.aiGenerated}</td>
+                        <td style="text-align: center; padding: 10px;">${stats.responded}</td>
+                        <td style="text-align: center; padding: 10px;">
+                            <span style="padding: 4px 10px; background: ${rate >= 50 ? '#e8f5e9' : '#fff3cd'}; color: ${rate >= 50 ? '#2e7d32' : '#856404'}; border-radius: 4px; font-weight: 600;">
+                                ${rate}%
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            breakdownHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // Account breakdown
+            breakdownHTML += `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                    <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5em;">📧</div>
+                        <div style="font-size: 1.5em; font-weight: 700; margin: 10px 0;">${personalAccount}</div>
+                        <div style="font-size: 0.9em; color: #666;">Personal Gmail</div>
+                    </div>
+                    <div style="background: #f0e8f8; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5em;">💼</div>
+                        <div style="font-size: 1.5em; font-weight: 700; margin: 10px 0;">${workAccount}</div>
+                        <div style="font-size: 0.9em; color: #666;">Work Gmail</div>
+                    </div>
+                </div>
+            `;
+
+            breakdownDiv.innerHTML = breakdownHTML;
+        }
+
         function renderAnalytics() {
             const contacts = getContacts();
+
+            // Message Analytics
+            renderMessageAnalytics(contacts);
 
             // Weekly activity chart
             const weeklyChart = document.getElementById('weekly-chart');
