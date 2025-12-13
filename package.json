@@ -1,4 +1,13 @@
 {
+  "name": "jobhunt-dashboard",
+  "version": "1.0.0",
+  "description": "Job search dashboard with automated screenshot testing",
+  "scripts": {
+    "screenshots": "node docs/generate-screenshots.js",
+    "screenshots:safe": "node docs/generate-screenshots-safe.js",
+    "test:playwright": "node docs/test-playwright.js",
+    "test:visual": "node docs/generate-screenshots.js"
+  },
   "dependencies": {
     "playwright": "^1.57.0"
   }

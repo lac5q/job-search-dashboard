@@ -191,8 +191,8 @@ const DualGmailClient = {
         localStorage.setItem('gmailAccounts', JSON.stringify(config));
     },
 
-    // Search messages in a specific account
-    async searchAccountMessages(accountType, query, maxResults = 10) {
+    // Search messages in a specific account with retry logic for rate limits
+    async searchAccountMessages(accountType, query, maxResults = 10, retryCount = 0) {
         const account = this.accounts[accountType];
 
         if (!account.enabled) {
@@ -201,7 +201,7 @@ const DualGmailClient = {
 
         if (!account.accessToken) {
             console.warn(`${accountType} account not authorized, skipping search`);
-            return { messages: [], count: 0, account: accountType };
+            return { messages: [], count: 0, account: accountType, needsAuth: true };
         }
 
         try {
@@ -215,12 +215,53 @@ const DualGmailClient = {
             );
 
             if (!response.ok) {
-                // Token might be expired
+                // Handle token expiry (401)
                 if (response.status === 401) {
                     account.accessToken = null;
                     this.saveConfiguration();
+                    return {
+                        messages: [],
+                        count: 0,
+                        account: accountType,
+                        error: 'Token expired. Please reconnect your Gmail account.',
+                        needsAuth: true
+                    };
                 }
-                throw new Error(`Gmail search failed: ${response.status}`);
+
+                // Handle rate limit (429)
+                if (response.status === 429) {
+                    // Exponential backoff: try up to 3 times
+                    if (retryCount < 3) {
+                        const waitTime = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+                        console.log(`Rate limited on ${accountType}. Retrying in ${waitTime}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        return this.searchAccountMessages(accountType, query, maxResults, retryCount + 1);
+                    } else {
+                        return {
+                            messages: [],
+                            count: 0,
+                            account: accountType,
+                            error: 'Gmail API rate limit reached. Please try again in a few minutes.',
+                            rateLimited: true
+                        };
+                    }
+                }
+
+                // Handle quota exceeded (403)
+                if (response.status === 403) {
+                    const errorData = await response.json().catch(() => ({}));
+                    if (errorData.error?.message?.includes('quota')) {
+                        return {
+                            messages: [],
+                            count: 0,
+                            account: accountType,
+                            error: 'Gmail API quota exceeded. Please try again later or check your API limits.',
+                            quotaExceeded: true
+                        };
+                    }
+                }
+
+                throw new Error(`Gmail search failed: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -240,7 +281,12 @@ const DualGmailClient = {
             return { messages: [], count: 0, account: accountType };
         } catch (error) {
             console.error(`Error searching ${accountType} Gmail:`, error);
-            return { messages: [], count: 0, account: accountType, error: error.message };
+            return {
+                messages: [],
+                count: 0,
+                account: accountType,
+                error: error.message || 'Failed to search Gmail'
+            };
         }
     },
 
@@ -381,12 +427,12 @@ const DualGmailClient = {
         return summary;
     },
 
-    // Send email from specific account
-    async sendEmailFrom(accountType, to, subject, body) {
+    // Send email from specific account with error handling
+    async sendEmailFrom(accountType, to, subject, body, retryCount = 0) {
         const account = this.accounts[accountType];
 
         if (!account.enabled || !account.accessToken) {
-            throw new Error(`${accountType} account not connected`);
+            throw new Error(`${accountType} account not connected. Please reconnect in Settings.`);
         }
 
         // Create raw email (RFC 2822 format)
@@ -404,26 +450,58 @@ const DualGmailClient = {
             .replace(/\//g, '_')
             .replace(/=+$/, '');
 
-        const response = await fetch(
-            'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${account.accessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ raw: encodedEmail })
+        try {
+            const response = await fetch(
+                'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${account.accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ raw: encodedEmail })
+                }
+            );
+
+            if (!response.ok) {
+                // Handle token expiry
+                if (response.status === 401) {
+                    account.accessToken = null;
+                    this.saveConfiguration();
+                    throw new Error('Gmail session expired. Please reconnect your Gmail account in Settings.');
+                }
+
+                // Handle rate limits with retry
+                if (response.status === 429 && retryCount < 3) {
+                    const waitTime = Math.pow(2, retryCount) * 1000;
+                    console.log(`Rate limited when sending. Retrying in ${waitTime}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    return this.sendEmailFrom(accountType, to, subject, body, retryCount + 1);
+                }
+
+                // Handle quota exceeded
+                if (response.status === 403) {
+                    const errorData = await response.json().catch(() => ({}));
+                    if (errorData.error?.message?.includes('quota')) {
+                        throw new Error('Gmail API quota exceeded. Please try again later.');
+                    }
+                }
+
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `Failed to send email: ${response.status} ${response.statusText}`);
             }
-        );
 
-        if (!response.ok) {
-            throw new Error(`Failed to send email from ${accountType}: ${response.status}`);
+            account.lastUsed = new Date().toISOString();
+            this.saveConfiguration();
+
+            return await response.json();
+        } catch (error) {
+            // Enhance network errors
+            if (error.message.includes('fetch')) {
+                throw new Error('Network error. Please check your internet connection and try again.');
+            }
+            throw error;
         }
-
-        account.lastUsed = new Date().toISOString();
-        this.saveConfiguration();
-
-        return await response.json();
     },
 
     // Disconnect an account

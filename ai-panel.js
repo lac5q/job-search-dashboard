@@ -17,9 +17,20 @@ const AIPanel = {
 
         this.currentContact = contact;
 
+        // Show backdrop (for mobile)
+        const backdrop = document.getElementById('ai-panel-backdrop');
+        if (backdrop) {
+            backdrop.classList.add('open');
+        }
+
         // Show panel with animation
         const panel = document.getElementById('ai-panel');
         panel.classList.add('open');
+
+        // Prevent body scroll on mobile when panel is open
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        }
 
         // Display contact context
         this.displayContactContext(contact);
@@ -33,8 +44,20 @@ const AIPanel = {
 
     // Close AI panel
     closeAIPanel() {
+        // Hide backdrop
+        const backdrop = document.getElementById('ai-panel-backdrop');
+        if (backdrop) {
+            backdrop.classList.remove('open');
+        }
+
+        // Hide panel
         const panel = document.getElementById('ai-panel');
         panel.classList.remove('open');
+
+        // Re-enable body scroll
+        document.body.style.overflow = '';
+
+        // Clear state
         this.currentContact = null;
         this.emailHistory = null;
     },
@@ -92,18 +115,75 @@ const AIPanel = {
             const history = await DualGmailClient.getContactHistoryDual(email, name);
             this.emailHistory = history;
 
+            // Check for errors in results
+            const hasPersonalError = history.personal.error;
+            const hasWorkError = history.work.error;
+            const needsPersonalAuth = history.personal.needsAuth;
+            const needsWorkAuth = history.work.needsAuth;
+
+            // Handle authentication errors
+            if ((needsPersonalAuth || needsWorkAuth) && history.totalCount === 0) {
+                const accountsNeedingAuth = [];
+                if (needsPersonalAuth) accountsNeedingAuth.push('Personal');
+                if (needsWorkAuth) accountsNeedingAuth.push('Work');
+
+                document.getElementById('ai-gmail-history').innerHTML = `
+                    <div style="padding: 15px; background: #fff3cd; border-radius: 8px;">
+                        <p style="margin: 0 0 10px 0; color: #856404;"><strong>Gmail token expired</strong></p>
+                        <p style="margin: 0 0 10px 0; color: #856404; font-size: 0.9em;">${accountsNeedingAuth.join(' and ')} Gmail account needs to be reconnected.</p>
+                        <button onclick="openSettingsModal()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">Reconnect Gmail</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Handle rate limit or quota errors
+            if ((history.personal.rateLimited || history.work.rateLimited ||
+                 history.personal.quotaExceeded || history.work.quotaExceeded) && history.totalCount === 0) {
+                const errorMsg = history.personal.error || history.work.error;
+                document.getElementById('ai-gmail-history').innerHTML = `
+                    <div style="padding: 15px; background: #fff3cd; border-radius: 8px;">
+                        <p style="margin: 0 0 8px 0; color: #856404;"><strong>Gmail API limit reached</strong></p>
+                        <p style="margin: 0; color: #856404; font-size: 0.9em;">${errorMsg}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Display results (even if partial)
             if (history.totalCount === 0) {
-                document.getElementById('ai-gmail-history').innerHTML = '<p style="color: #888;">No email history found in any account</p>';
+                let noResultsMsg = '<p style="color: #888;">No email history found in any account</p>';
+
+                // Show warning if one account had errors but didn't completely fail
+                if (hasPersonalError || hasWorkError) {
+                    const errorAccount = hasPersonalError ? 'Personal' : 'Work';
+                    noResultsMsg += `<p style="color: #f0ad4e; font-size: 0.85em; margin-top: 8px;">Note: ${errorAccount} account search had issues</p>`;
+                }
+
+                document.getElementById('ai-gmail-history').innerHTML = noResultsMsg;
             } else {
                 this.displayDualEmailHistory(history);
+
+                // Show warning banner if one account had errors but we got results from the other
+                if (hasPersonalError || hasWorkError) {
+                    const errorAccount = hasPersonalError ? 'Personal' : 'Work';
+                    const errorMsg = hasPersonalError ? history.personal.error : history.work.error;
+                    const warningBanner = `
+                        <div style="padding: 10px; background: #fff3cd; border-radius: 6px; margin-top: 10px; font-size: 0.85em;">
+                            <strong style="color: #856404;">${errorAccount} Gmail:</strong>
+                            <span style="color: #856404;">${errorMsg}</span>
+                        </div>
+                    `;
+                    document.getElementById('ai-gmail-history').innerHTML += warningBanner;
+                }
             }
         } catch (error) {
             console.error('Gmail search error:', error);
             document.getElementById('ai-gmail-history').innerHTML = `
                 <div style="padding: 15px; background: #f8d7da; border-radius: 8px;">
-                    <p style="margin: 0; color: #721c24;">Failed to load Gmail history</p>
-                    <p style="margin: 5px 0 0 0; color: #721c24; font-size: 0.85em;">${error.message}</p>
-                    <button onclick="openSettingsModal()" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 0.9em;">Open Settings</button>
+                    <p style="margin: 0 0 8px 0; color: #721c24;"><strong>Failed to load Gmail history</strong></p>
+                    <p style="margin: 0 0 10px 0; color: #721c24; font-size: 0.85em;">${this.escapeHtml(error.message)}</p>
+                    <button onclick="openSettingsModal()" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">Open Settings</button>
                 </div>
             `;
         }
@@ -231,7 +311,14 @@ const AIPanel = {
         // Check AI configuration
         const aiConfig = this.getAIConfig();
         if (!aiConfig) {
-            alert('AI not configured. Please go to Settings and add your AI API key.');
+            const outputDiv = document.getElementById('ai-output');
+            outputDiv.innerHTML = `
+                <div style="padding: 15px; background: #fff3cd; border-radius: 8px; color: #856404;">
+                    <p style="margin: 0 0 10px 0;"><strong>AI not configured</strong></p>
+                    <p style="margin: 0 0 10px 0; font-size: 0.9em;">Please add your AI API key in Settings to use message generation.</p>
+                    <button onclick="openSettingsModal()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">Open Settings</button>
+                </div>
+            `;
             return;
         }
 
@@ -243,7 +330,8 @@ const AIPanel = {
         outputDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #888;"><div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #ddd; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 10px;">Generating message...</p></div>';
 
         try {
-            const message = await this.callAI(prompt, aiConfig);
+            // Call AI with retry logic (3 attempts)
+            const message = await this.callAIWithRetry(prompt, aiConfig, 3);
 
             if (message) {
                 outputDiv.innerHTML = `
@@ -257,12 +345,61 @@ const AIPanel = {
                 this.currentMessage = message;
             }
         } catch (error) {
+            console.error('AI generation error:', error);
+
+            // Provide user-friendly error message with actionable next steps
+            let errorMessage = error.message;
+            let suggestion = '';
+
+            if (error.message.includes('API key')) {
+                suggestion = '<button onclick="openSettingsModal()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 0.9em;">Check API Key in Settings</button>';
+            } else if (error.message.includes('rate limit') || error.message.includes('quota')) {
+                suggestion = '<p style="margin: 8px 0 0 0; font-size: 0.85em;">Try again in a few minutes or check your API usage limits.</p>';
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                suggestion = '<p style="margin: 8px 0 0 0; font-size: 0.85em;">Check your internet connection and try again.</p>';
+            } else {
+                suggestion = '<button onclick="generateMessage()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 0.9em;">Try Again</button>';
+            }
+
             outputDiv.innerHTML = `
                 <div style="padding: 15px; background: #f8d7da; border-radius: 8px; color: #721c24;">
-                    <strong>Error generating message:</strong><br>${error.message}
+                    <p style="margin: 0 0 8px 0;"><strong>Failed to generate message</strong></p>
+                    <p style="margin: 0; font-size: 0.9em;">${this.escapeHtml(errorMessage)}</p>
+                    ${suggestion}
                 </div>
             `;
         }
+    },
+
+    // Call AI with retry logic
+    async callAIWithRetry(prompt, config, maxAttempts = 3) {
+        let lastError;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return await this.callAI(prompt, config);
+            } catch (error) {
+                lastError = error;
+                console.warn(`AI call attempt ${attempt} failed:`, error.message);
+
+                // Don't retry on authentication errors
+                if (error.message.includes('API key') || error.message.includes('authentication')) {
+                    throw error;
+                }
+
+                // Don't retry if this was the last attempt
+                if (attempt === maxAttempts) {
+                    break;
+                }
+
+                // Exponential backoff: wait 1s, 2s, 4s between retries
+                const waitTime = Math.pow(2, attempt - 1) * 1000;
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+        }
+
+        // All retries failed
+        throw new Error(`Failed after ${maxAttempts} attempts: ${lastError.message}`);
     },
 
     // Build AI prompt
@@ -414,7 +551,7 @@ Generate the message:`;
         }
     },
 
-    // Send via Gmail
+    // Send via Gmail with loading state and better error handling
     async sendViaGmail() {
         if (!this.currentContact || !this.currentMessage) {
             alert('No message to send');
@@ -442,6 +579,16 @@ Generate the message:`;
             return;
         }
 
+        // Show loading state on output div
+        const outputDiv = document.getElementById('ai-output');
+        const originalContent = outputDiv.innerHTML;
+        outputDiv.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #888;">
+                <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #ddd; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p style="margin-top: 10px;">Sending email...</p>
+            </div>
+        `;
+
         try {
             // Send email
             await GmailClient.sendEmail(email, subject, body);
@@ -452,19 +599,55 @@ Generate the message:`;
             // Update contact status
             this.updateContactStatus();
 
-            // Show success
-            alert('Email sent successfully!');
+            // Show success message
+            outputDiv.innerHTML = `
+                <div style="padding: 15px; background: #d4edda; border-radius: 8px; color: #155724;">
+                    <p style="margin: 0;"><strong>Email sent successfully!</strong></p>
+                    <p style="margin: 8px 0 0 0; font-size: 0.9em;">Message sent to ${this.escapeHtml(email)}</p>
+                </div>
+            `;
 
-            // Close panel
-            this.closeAIPanel();
+            // Close panel after 2 seconds
+            setTimeout(() => {
+                this.closeAIPanel();
 
-            // Refresh CRM display
-            if (typeof renderCRM === 'function') {
-                renderCRM();
-            }
+                // Refresh CRM display
+                if (typeof renderCRM === 'function') {
+                    renderCRM();
+                }
+            }, 2000);
 
         } catch (error) {
-            alert('Failed to send email: ' + error.message);
+            console.error('Send email error:', error);
+
+            // Restore original content and show error
+            outputDiv.innerHTML = originalContent;
+
+            // Show user-friendly error with actionable guidance
+            let errorMessage = error.message;
+            let suggestion = '';
+
+            if (errorMessage.includes('session expired') || errorMessage.includes('reconnect')) {
+                suggestion = '<button onclick="openSettingsModal()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 0.9em;">Reconnect Gmail</button>';
+            } else if (errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
+                suggestion = '<p style="margin: 8px 0 0 0; font-size: 0.85em;">Please try again in a few minutes.</p>';
+            } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+                suggestion = '<p style="margin: 8px 0 0 0; font-size: 0.85em;">Check your internet connection and try again.</p>';
+            } else {
+                suggestion = '<button onclick="sendViaGmail()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 0.9em;">Try Again</button>';
+            }
+
+            alert(`Failed to send email\n\n${errorMessage}\n\nSee the panel for more details.`);
+
+            // Also show in panel
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'padding: 15px; background: #f8d7da; border-radius: 8px; color: #721c24; margin-top: 15px;';
+            errorDiv.innerHTML = `
+                <p style="margin: 0 0 8px 0;"><strong>Failed to send email</strong></p>
+                <p style="margin: 0; font-size: 0.9em;">${this.escapeHtml(errorMessage)}</p>
+                ${suggestion}
+            `;
+            outputDiv.appendChild(errorDiv);
         }
     },
 
