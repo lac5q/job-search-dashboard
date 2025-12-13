@@ -973,6 +973,166 @@
                 font-size: 0.9em;
             }
         }
+
+        /* ============================================
+           AI PANEL STYLES
+           ============================================ */
+
+        .ai-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: min(600px, 35vw);
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+            transform: translateX(100%);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+            overflow: hidden;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-panel.open {
+            transform: translateX(0);
+        }
+
+        .ai-panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .ai-panel-header h2 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .ai-panel-header button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .ai-panel-header button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .ai-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .ai-panel-section {
+            margin-bottom: 20px;
+        }
+
+        .ai-panel-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .ai-panel select,
+        .ai-panel textarea,
+        .ai-panel input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+
+        .ai-panel textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .ai-panel-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .ai-panel-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .ai-actions {
+            display: none;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .ai-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-send {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-copy:hover,
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .ai-panel.open {
+                width: 100vw;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1529,6 +1689,46 @@ Luis
 
                 <hr style="margin: 25px 0; border: none; border-top: 1px solid #e0e0e0;">
 
+                <h3 style="margin-bottom: 15px; font-size: 1em;">Gmail Accounts</h3>
+                <div style="margin-bottom: 20px;">
+                    <!-- Personal Gmail -->
+                    <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5em;">📧</span>
+                                <div>
+                                    <strong>Personal Gmail</strong>
+                                    <div id="personal-gmail-email" style="font-size: 0.85em; color: #666;">Not connected</div>
+                                </div>
+                            </div>
+                            <span id="personal-gmail-status" style="font-size: 1.2em;">⚠️</span>
+                        </div>
+                        <input type="text" id="personal-client-id" placeholder="OAuth Client ID (e.g., 123456.apps.googleusercontent.com)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em;">
+                        <button id="personal-connect-btn" onclick="connectPersonalGmail()" class="btn btn-secondary" style="width: 100%;">Connect Personal Gmail</button>
+                    </div>
+
+                    <!-- Work Gmail -->
+                    <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5em;">💼</span>
+                                <div>
+                                    <strong>Work Gmail</strong>
+                                    <div id="work-gmail-email" style="font-size: 0.85em; color: #666;">Not connected</div>
+                                </div>
+                            </div>
+                            <span id="work-gmail-status" style="font-size: 1.2em;">⚠️</span>
+                        </div>
+                        <input type="text" id="work-client-id" placeholder="OAuth Client ID (e.g., 987654.apps.googleusercontent.com)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em;">
+                        <button id="work-connect-btn" onclick="connectWorkGmail()" class="btn btn-secondary" style="width: 100%;">Connect Work Gmail</button>
+                    </div>
+                    <p style="font-size: 0.8em; color: #888; margin-top: 10px;">
+                        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #667eea;">Get OAuth Client ID</a> from Google Cloud Console
+                    </p>
+                </div>
+
+                <hr style="margin: 25px 0; border: none; border-top: 1px solid #e0e0e0;">
+
                 <h3 style="margin-bottom: 15px; font-size: 1em;">Data Management</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button onclick="exportAllData()" class="btn btn-secondary" style="flex: 1;">Export JSON</button>
@@ -1873,11 +2073,105 @@ Luis
         // Settings modal functions
         function openSettingsModal() {
             SyncManager.updateUI();
+            updateGmailAccountsUI();
             document.getElementById('settings-modal').classList.add('active');
         }
 
         function closeSettingsModal() {
             document.getElementById('settings-modal').classList.remove('active');
+        }
+
+        // Gmail Account Management
+        function updateGmailAccountsUI() {
+            const status = DualGmailClient.getAccountStatus();
+
+            // Update Personal Gmail UI
+            const personalEmail = document.getElementById('personal-gmail-email');
+            const personalStatus = document.getElementById('personal-gmail-status');
+            const personalClientId = document.getElementById('personal-client-id');
+
+            if (status.personal.connected) {
+                personalEmail.textContent = status.personal.email || 'Connected';
+                personalEmail.style.color = '#27ae60';
+                personalStatus.textContent = '✅';
+                personalClientId.value = DualGmailClient.accounts.personal.clientId || '';
+                document.getElementById('personal-connect-btn').textContent = 'Reconnect';
+            } else {
+                personalEmail.textContent = 'Not connected';
+                personalEmail.style.color = '#666';
+                personalStatus.textContent = '⚠️';
+                personalClientId.value = DualGmailClient.accounts.personal.clientId || '';
+            }
+
+            // Update Work Gmail UI
+            const workEmail = document.getElementById('work-gmail-email');
+            const workStatus = document.getElementById('work-gmail-status');
+            const workClientId = document.getElementById('work-client-id');
+
+            if (status.work.connected) {
+                workEmail.textContent = status.work.email || 'Connected';
+                workEmail.style.color = '#27ae60';
+                workStatus.textContent = '✅';
+                workClientId.value = DualGmailClient.accounts.work.clientId || '';
+                document.getElementById('work-connect-btn').textContent = 'Reconnect';
+            } else {
+                workEmail.textContent = 'Not connected';
+                workEmail.style.color = '#666';
+                workStatus.textContent = '⚠️';
+                workClientId.value = DualGmailClient.accounts.work.clientId || '';
+            }
+        }
+
+        async function connectPersonalGmail() {
+            const clientId = document.getElementById('personal-client-id').value.trim();
+
+            if (!clientId) {
+                alert('Please enter an OAuth Client ID for your personal Gmail account');
+                return;
+            }
+
+            try {
+                document.getElementById('personal-connect-btn').textContent = 'Connecting...';
+                document.getElementById('personal-connect-btn').disabled = true;
+
+                DualGmailClient.configureAccount('personal', clientId);
+                await DualGmailClient.authorizeAccount('personal');
+
+                updateGmailAccountsUI();
+                alert('Personal Gmail connected successfully!');
+            } catch (error) {
+                console.error('Personal Gmail connection failed:', error);
+                alert(`Failed to connect personal Gmail: ${error.message || error}`);
+            } finally {
+                document.getElementById('personal-connect-btn').textContent = 'Connect Personal Gmail';
+                document.getElementById('personal-connect-btn').disabled = false;
+            }
+        }
+
+        async function connectWorkGmail() {
+            const clientId = document.getElementById('work-client-id').value.trim();
+
+            if (!clientId) {
+                alert('Please enter an OAuth Client ID for your work Gmail account');
+                return;
+            }
+
+            try {
+                document.getElementById('work-connect-btn').textContent = 'Connecting...';
+                document.getElementById('work-connect-btn').disabled = true;
+
+                DualGmailClient.configureAccount('work', clientId);
+                await DualGmailClient.authorizeAccount('work');
+
+                updateGmailAccountsUI();
+                alert('Work Gmail connected successfully!');
+            } catch (error) {
+                console.error('Work Gmail connection failed:', error);
+                alert(`Failed to connect work Gmail: ${error.message || error}`);
+            } finally {
+                document.getElementById('work-connect-btn').textContent = 'Connect Work Gmail';
+                document.getElementById('work-connect-btn').disabled = false;
+            }
         }
 
         function saveSupabaseConfig() {
@@ -2868,8 +3162,8 @@ Luis
                     ` : ''}
 
                     <div class="contact-card-actions">
-                        <button class="btn-compose" onclick="composeEmailForContact('${c.id}')">
-                            ✉️ Compose Email
+                        <button class="btn-compose" onclick="openAIPanel('${c.id}')">
+                            ✉️ Compose
                         </button>
                         ${c.linkedin ? `<a class="btn-linkedin" href="${c.linkedin}" target="_blank">LinkedIn</a>` : ''}
                         <button class="btn-log" onclick="openOutreachModal('${c.id}')">📝 Log</button>
@@ -3065,8 +3359,89 @@ Luis
                 closeModal();
                 closeOutreachModal();
                 closeSettingsModal();
+                closeAIPanel();
             }
         });
     </script>
+
+    <!-- AI Panel (Side Panel) -->
+    <div id="ai-panel" class="ai-panel" role="dialog" aria-labelledby="ai-panel-title" aria-modal="true">
+        <div class="ai-panel-header">
+            <h2 id="ai-panel-title">AI Message Generator</h2>
+            <button id="ai-panel-close" onclick="closeAIPanel()" title="Close panel" aria-label="Close AI panel">✕</button>
+        </div>
+
+        <div class="ai-panel-content">
+            <!-- Contact Context -->
+            <div id="ai-contact-context" class="ai-panel-section">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Gmail History -->
+            <div class="ai-panel-section">
+                <h3>Email History</h3>
+                <div id="ai-gmail-history">
+                    <p style="color: #888;">Select a contact to view email history</p>
+                </div>
+            </div>
+
+            <!-- Message Settings -->
+            <div class="ai-panel-section">
+                <h3>Message Settings</h3>
+
+                <label for="ai-message-type" style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #666;">Message Type</label>
+                <select id="ai-message-type" aria-label="Select message type">
+                    <option value="email-followup">Email Follow-up</option>
+                    <option value="initial-outreach">Initial Outreach</option>
+                    <option value="thank-you">Thank You</option>
+                    <option value="coffee-chat">Coffee Chat Request</option>
+                    <option value="linkedin-message">LinkedIn Message</option>
+                    <option value="referral-request">Referral Request</option>
+                </select>
+
+                <label for="ai-tone" style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #666;">Tone</label>
+                <select id="ai-tone" aria-label="Select message tone">
+                    <option value="professional-casual">Professional Casual</option>
+                    <option value="formal">Formal</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="direct">Direct</option>
+                </select>
+
+                <label for="ai-additional-context" style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #666;">Additional Context (Optional)</label>
+                <textarea id="ai-additional-context" aria-label="Additional context for message generation" placeholder="Add any additional context or specific details you want to mention..."></textarea>
+            </div>
+
+            <!-- Generate Buttons -->
+            <div class="ai-panel-buttons">
+                <button class="btn-generate" onclick="generateMessage()" aria-label="Generate AI message for this contact">
+                    Generate Message
+                </button>
+            </div>
+
+            <!-- Output -->
+            <div class="ai-panel-section">
+                <h3>Generated Message</h3>
+                <div id="ai-output">
+                    <p style="color: #888; font-style: italic;">Click "Generate Message" to create a personalized message</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div id="ai-actions" class="ai-actions">
+                <button class="btn-copy" onclick="copyToClipboard()" aria-label="Copy generated message to clipboard">
+                    Copy
+                </button>
+                <button class="btn-send" onclick="sendViaGmail()" aria-label="Send message via Gmail">
+                    Send via Gmail
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Dual Gmail Client (supports personal + work accounts) -->
+    <script src="dual-gmail-client.js"></script>
+
+    <!-- Include AI Panel -->
+    <script src="ai-panel.js"></script>
 </body>
 </html>
