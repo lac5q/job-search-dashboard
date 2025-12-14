@@ -1886,6 +1886,27 @@ Luis
                 </div>
                 <p style="font-size: 0.8em; color: #888; margin-top: 10px;">Export creates a backup file. Import merges with existing data.</p>
 
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <h3 style="margin-bottom: 15px; font-size: 1em;">📂 LinkedIn Archive Import</h3>
+                <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
+                    Import connections and messages from your LinkedIn data export.
+                    <a href="linkedin-archives/README.md" target="_blank" style="color: #667eea;">How to export →</a>
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="document.getElementById('linkedin-connections-file').click()" class="btn btn-secondary" style="flex: 1;">
+                        👥 Import Connections.csv
+                    </button>
+                    <button onclick="document.getElementById('linkedin-messages-file').click()" class="btn btn-secondary" style="flex: 1;">
+                        💬 Import messages.csv
+                    </button>
+                    <input type="file" id="linkedin-connections-file" accept=".csv" onchange="importLinkedInConnections(event)" style="display: none;">
+                    <input type="file" id="linkedin-messages-file" accept=".csv" onchange="importLinkedInMessages(event)" style="display: none;">
+                </div>
+                <p style="font-size: 0.8em; color: #888; margin-top: 10px;">
+                    Files are in the unzipped LinkedIn export folder. Import connections first, then messages.
+                </p>
+
                 <div style="margin-top: 20px;">
                     <a href="SUPABASE-SETUP.md" target="_blank" style="color: #667eea; font-size: 0.9em;">View setup instructions</a>
                 </div>
@@ -2630,6 +2651,325 @@ Luis
                     alert('Data imported successfully!');
                 } catch (error) {
                     alert('Failed to import data: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ============================================
+        // LINKEDIN ARCHIVE IMPORT
+        // ============================================
+
+        function parseCSV(text) {
+            // Simple CSV parser that handles quoted fields
+            const lines = [];
+            let currentLine = [];
+            let currentField = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        // Escaped quote
+                        currentField += '"';
+                        i++; // Skip next quote
+                    } else {
+                        // Toggle quote mode
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    // End of field
+                    currentLine.push(currentField.trim());
+                    currentField = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    // End of line
+                    if (currentField || currentLine.length > 0) {
+                        currentLine.push(currentField.trim());
+                        if (currentLine.some(f => f.length > 0)) {
+                            lines.push(currentLine);
+                        }
+                        currentLine = [];
+                        currentField = '';
+                    }
+                    // Skip \r\n
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                } else {
+                    currentField += char;
+                }
+            }
+
+            // Add last field/line
+            if (currentField || currentLine.length > 0) {
+                currentLine.push(currentField.trim());
+                if (currentLine.some(f => f.length > 0)) {
+                    lines.push(currentLine);
+                }
+            }
+
+            return lines;
+        }
+
+        function importLinkedInConnections(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const lines = parseCSV(text);
+
+                    if (lines.length === 0) {
+                        alert('No data found in CSV file');
+                        return;
+                    }
+
+                    // First line is header
+                    const headers = lines[0].map(h => h.toLowerCase().trim());
+                    const firstNameIdx = headers.findIndex(h => h.includes('first name'));
+                    const lastNameIdx = headers.findIndex(h => h.includes('last name'));
+                    const companyIdx = headers.findIndex(h => h.includes('company'));
+                    const positionIdx = headers.findIndex(h => h.includes('position'));
+                    const emailIdx = headers.findIndex(h => h.includes('email'));
+                    const connectedOnIdx = headers.findIndex(h => h.includes('connected on'));
+
+                    if (firstNameIdx === -1 || lastNameIdx === -1) {
+                        alert('Invalid Connections.csv format - missing required columns');
+                        return;
+                    }
+
+                    const contacts = getContacts();
+                    let newCount = 0;
+                    let updatedCount = 0;
+
+                    // Process each connection
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = lines[i];
+                        const firstName = row[firstNameIdx] || '';
+                        const lastName = row[lastNameIdx] || '';
+                        const name = `${firstName} ${lastName}`.trim();
+
+                        if (!name) continue;
+
+                        const company = companyIdx !== -1 ? row[companyIdx] : '';
+                        const position = positionIdx !== -1 ? row[positionIdx] : '';
+                        const email = emailIdx !== -1 ? row[emailIdx] : '';
+                        const connectedOn = connectedOnIdx !== -1 ? row[connectedOnIdx] : '';
+
+                        // Check if contact exists
+                        const existingIdx = contacts.findIndex(c =>
+                            c.name.toLowerCase() === name.toLowerCase() ||
+                            (email && c.email && c.email.toLowerCase() === email.toLowerCase())
+                        );
+
+                        if (existingIdx !== -1) {
+                            // Update existing contact
+                            const contact = contacts[existingIdx];
+                            if (company && !contact.company) contact.company = company;
+                            if (position && !contact.title) contact.title = position;
+                            if (email && !contact.email) contact.email = email;
+                            if (!contact.source || contact.source === 'manual') {
+                                contact.source = 'linkedin';
+                            }
+                            if (connectedOn && !contact.lastContact) {
+                                contact.lastContact = new Date(connectedOn).toISOString();
+                            }
+                            updatedCount++;
+                        } else {
+                            // Create new contact
+                            const newContact = {
+                                id: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                                name: name,
+                                title: position || '',
+                                company: company || '',
+                                email: email || '',
+                                phone: '',
+                                source: 'linkedin',
+                                status: 'not-contacted',
+                                priority: 'medium',
+                                notes: '',
+                                tags: [],
+                                outreach: [],
+                                lastContact: connectedOn ? new Date(connectedOn).toISOString() : null,
+                                messageHistory: [],
+                                linkedInUrl: ''
+                            };
+                            contacts.push(newContact);
+                            newCount++;
+                        }
+                    }
+
+                    saveContacts(contacts);
+                    alert(`✓ LinkedIn Connections Import\n${newCount} new contacts\n${updatedCount} updated`);
+
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Failed to import connections: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function importLinkedInMessages(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const lines = parseCSV(text);
+
+                    if (lines.length === 0) {
+                        alert('No data found in CSV file');
+                        return;
+                    }
+
+                    // First line is header
+                    const headers = lines[0].map(h => h.toLowerCase().trim());
+                    const fromIdx = headers.indexOf('from');
+                    const toIdx = headers.indexOf('to');
+                    const dateIdx = headers.indexOf('date');
+                    const contentIdx = headers.indexOf('content');
+                    const senderUrlIdx = headers.findIndex(h => h.includes('sender profile url'));
+                    const recipientUrlsIdx = headers.findIndex(h => h.includes('recipient profile url'));
+
+                    if (fromIdx === -1 || toIdx === -1 || dateIdx === -1 || contentIdx === -1) {
+                        alert('Invalid messages.csv format - missing required columns');
+                        return;
+                    }
+
+                    const contacts = getContacts();
+                    const myName = 'Luis Calderon'; // Your name from LinkedIn
+                    let importedCount = 0;
+                    let updatedContactsCount = 0;
+                    const updatedContactIds = new Set();
+
+                    // Process each message
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = lines[i];
+                        const from = row[fromIdx] || '';
+                        const to = row[toIdx] || '';
+                        const date = row[dateIdx] || '';
+                        const content = row[contentIdx] || '';
+                        const senderUrl = senderUrlIdx !== -1 ? row[senderUrlIdx] : '';
+                        const recipientUrls = recipientUrlsIdx !== -1 ? row[recipientUrlsIdx] : '';
+
+                        if (!content || !from || !to || !date) continue;
+
+                        // Determine who the other person is (not me)
+                        const isFromMe = from.trim() === myName;
+                        const otherPersonName = isFromMe ? to.trim() : from.trim();
+                        const otherPersonUrl = isFromMe ? recipientUrls : senderUrl;
+
+                        if (!otherPersonName) continue;
+
+                        // Find matching contact
+                        let contact = contacts.find(c =>
+                            c.name.toLowerCase() === otherPersonName.toLowerCase() ||
+                            (otherPersonUrl && c.linkedInUrl && c.linkedInUrl === otherPersonUrl)
+                        );
+
+                        if (!contact) {
+                            // Create new contact from message
+                            contact = {
+                                id: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                                name: otherPersonName,
+                                title: '',
+                                company: '',
+                                email: '',
+                                phone: '',
+                                source: 'linkedin',
+                                status: isFromMe ? 'contacted' : 'not-contacted',
+                                priority: 'medium',
+                                notes: '',
+                                tags: [],
+                                outreach: [],
+                                lastContact: new Date(date).toISOString(),
+                                messageHistory: [],
+                                linkedInUrl: otherPersonUrl || ''
+                            };
+                            contacts.push(contact);
+                        }
+
+                        // Initialize arrays
+                        if (!contact.messageHistory) contact.messageHistory = [];
+                        if (!contact.outreach) contact.outreach = [];
+
+                        // Check for duplicate message
+                        const messageDate = new Date(date).toISOString();
+                        const exists = contact.messageHistory.some(m =>
+                            m.date === messageDate && m.body === content
+                        );
+
+                        if (!exists) {
+                            // Add to messageHistory
+                            contact.messageHistory.push({
+                                id: `linkedin-msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                date: messageDate,
+                                type: 'linkedin-message',
+                                subject: 'LinkedIn Message',
+                                body: content,
+                                sentVia: 'linkedin',
+                                aiGenerated: false,
+                                responded: !isFromMe,
+                                responseDate: !isFromMe ? messageDate : null
+                            });
+
+                            // Add to outreach
+                            contact.outreach.push({
+                                type: isFromMe ? 'linkedin-message-sent' : 'linkedin-message-received',
+                                date: messageDate,
+                                notes: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                                channel: 'linkedin-messaging'
+                            });
+
+                            // Update lastContact
+                            const msgDate = new Date(messageDate);
+                            const currentLastContact = contact.lastContact ? new Date(contact.lastContact) : new Date(0);
+                            if (msgDate > currentLastContact) {
+                                contact.lastContact = messageDate;
+                            }
+
+                            // Update status if we sent message
+                            if (isFromMe && contact.status === 'not-contacted') {
+                                contact.status = 'contacted';
+                            }
+
+                            importedCount++;
+                            updatedContactIds.add(contact.id);
+                        }
+                    }
+
+                    updatedContactsCount = updatedContactIds.size;
+                    saveContacts(contacts);
+
+                    // Deduplicate after import
+                    const dedupeResult = deduplicateContacts();
+                    if (dedupeResult.removed > 0) {
+                        console.log(`Removed ${dedupeResult.removed} duplicates after LinkedIn message import`);
+                    }
+
+                    // Refresh UI
+                    if (typeof updateAllDisplays === 'function') {
+                        updateAllDisplays();
+                    }
+                    if (typeof renderAnalytics === 'function') {
+                        renderAnalytics();
+                    }
+
+                    alert(`✓ LinkedIn Messages Import\n${importedCount} messages imported\n${updatedContactsCount} contacts updated`);
+
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Failed to import messages: ' + error.message);
                 }
             };
             reader.readAsText(file);
