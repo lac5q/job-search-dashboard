@@ -1,445 +1,634 @@
-# Phone & SMS Integration Options
+# iPhone & Mac Phone/SMS Integration
 ## Job Search CRM
 
 **Date**: December 13, 2025
-**Status**: Research & Planning
+**Status**: Implementation Ready
+**Platform**: iPhone + Mac only
 
 ---
 
 ## Overview
 
-You asked: *"Is there anyway to also connect to my phone texts and phone calls to bring that contact information into the CRM?"*
+This guide explains how to integrate your **personal iPhone texts and phone logs** into the CRM using native Apple features (no third-party apps required).
 
-**Short answer**: Yes, but it's more complex than LinkedIn sync. Here are your options:
+**What you'll get**:
+- ✅ Full iMessage + SMS history synced to CRM
+- ✅ Call logs with duration and timestamps
+- ✅ Automatic contact matching by phone number
+- ✅ Updates to lastContact, messageHistory, and outreach arrays
+- ✅ 100% local processing (privacy-first)
 
 ---
 
-## Option 1: iPhone iMessage/SMS Sync (Recommended for Mac Users)
+## Prerequisites
 
-### How It Works
-Use macOS Messages app and AppleScript/Shortcuts to export message history.
+**You need**:
+- iPhone with iMessage/SMS
+- Mac computer with macOS (Messages app synced via iCloud)
+- iCloud sync enabled (Settings → [Your Name] → iCloud → Messages ON)
 
-### Pros
-- ✅ Works entirely locally (no third-party apps)
-- ✅ Free
-- ✅ Access to full iMessage + SMS history
-- ✅ Can match phone numbers to contacts
+**Verify Messages sync**:
+1. Open Messages app on Mac
+2. Check that recent iPhone texts appear
+3. If not, go to Messages → Settings → iMessage → Enable Messages in iCloud
 
-### Cons
-- ❌ Requires Mac computer with Messages synced
-- ❌ Manual export process (or needs automation setup)
-- ❌ No real-time sync (periodic exports)
+---
 
-### Implementation Steps
+## Part 1: iMessage & SMS Export
 
-**1. Export Messages via AppleScript**
+### Option A: Direct Database Query (Recommended)
 
-Create `~/export-imessages.scpt`:
-```applescript
--- Export recent messages from Messages app
-tell application "Messages"
-    set recentMessages to {}
-    repeat with iBuddy in (get every participant)
-        set buddyName to (get name of iBuddy)
-        set buddyHandle to (get handle of iBuddy)
+macOS stores all Messages in a SQLite database. We can query it directly.
 
-        -- Get last 10 messages with this person
-        set theChats to (get chats whose participants contains iBuddy)
-        repeat with aChat in theChats
-            set chatMessages to (get messages of aChat)
-            repeat with aMessage in chatMessages
-                set messageText to (get text of aMessage)
-                set messageDate to (get date sent of aMessage)
-                set messageDirection to (get direction of aMessage) -- incoming or outgoing
+**1. Create export script**
 
-                set end of recentMessages to {|contact|:buddyName, |phone|:buddyHandle, |message|:messageText, |date|:messageDate, |direction|:messageDirection}
-            end repeat
-        end repeat
-    end repeat
+Save as `~/export-messages.sh`:
 
-    return recentMessages
-end tell
-```
-
-**2. Convert to JSON**
-
-Create `export-messages.sh`:
 ```bash
 #!/bin/bash
-# Export iMessages to JSON format for CRM import
+# Export iMessages to JSON for CRM import
 
-osascript ~/export-imessages.scpt > /tmp/messages-raw.txt
+DB="$HOME/Library/Messages/chat.db"
+OUTPUT="$HOME/Downloads/imessages-export-$(date +%Y-%m-%d).json"
 
-# Convert to JSON (requires jq)
-cat /tmp/messages-raw.txt | jq '.' > ~/Downloads/imessages-export.json
+# Query Messages database
+sqlite3 "$DB" <<'EOF' | jq -R -s -c 'split("\n") | map(select(length > 0) | split("|")) | map({
+  contact: .[0],
+  phone: .[1],
+  message: .[2],
+  date: .[3],
+  direction: (if .[4] == "0" then "incoming" else "outgoing" end)
+})' > "$OUTPUT"
 
-echo "✓ Exported to ~/Downloads/imessages-export.json"
+SELECT
+  COALESCE(handle.id, 'Unknown') as contact,
+  handle.id as phone,
+  message.text as message,
+  datetime(message.date/1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as date,
+  message.is_from_me as direction
+FROM message
+LEFT JOIN handle ON message.handle_id = handle.ROWID
+WHERE message.date >= strftime('%s', 'now', '-90 days') * 1000000000
+  AND message.text IS NOT NULL
+ORDER BY message.date DESC;
+EOF
+
+echo "✓ Exported to: $OUTPUT"
+echo "$(jq length "$OUTPUT") messages exported"
 ```
 
-**3. Import to CRM**
+**2. Make executable and run**:
 
-Add button to dashboard that reads the JSON file and syncs like LinkedIn:
+```bash
+chmod +x ~/export-messages.sh
+~/export-messages.sh
+```
 
+**Output**: `~/Downloads/imessages-export-YYYY-MM-DD.json`
+
+### Option B: AppleScript Export (Alternative)
+
+If database query doesn't work, use AppleScript:
+
+**1. Create AppleScript**
+
+Save as `~/export-imessages.scpt`:
+
+```applescript
+-- Export recent messages from Messages app
+use scripting additions
+
+set outputList to {}
+set todayDate to current date
+set ninetyDaysAgo to todayDate - (90 * days)
+
+tell application "Messages"
+    repeat with aChat in every chat
+        try
+            set chatParticipants to participants of aChat
+            repeat with aPerson in chatParticipants
+                set personID to id of aPerson
+                set personName to name of aPerson
+
+                -- Get messages from this chat
+                set chatMessages to messages of aChat
+                repeat with aMessage in chatMessages
+                    try
+                        set msgDate to date sent of aMessage
+                        if msgDate > ninetyDaysAgo then
+                            set msgText to text of aMessage
+                            set msgDirection to direction of aMessage
+
+                            set msgRecord to {|contact|:personName, |phone|:personID, |message|:msgText, |date|:msgDate as string, |direction|:msgDirection as string}
+                            set end of outputList to msgRecord
+                        end if
+                    end try
+                end repeat
+            end repeat
+        end try
+    end repeat
+end tell
+
+return outputList
+```
+
+**2. Create shell wrapper**
+
+Save as `~/export-messages-applescript.sh`:
+
+```bash
+#!/bin/bash
+OUTPUT="$HOME/Downloads/imessages-export-$(date +%Y-%m-%d).json"
+
+osascript ~/export-imessages.scpt | \
+  perl -pe 's/\{/\n{/g' | \
+  jq -Rs 'split("\n") | map(select(length > 0))' > "$OUTPUT"
+
+echo "✓ Exported to: $OUTPUT"
+```
+
+**3. Run**:
+
+```bash
+chmod +x ~/export-messages-applescript.sh
+~/export-messages-applescript.sh
+```
+
+---
+
+## Part 2: Call Log Export
+
+Use iOS Shortcuts to export call history.
+
+### Create iOS Shortcut
+
+**1. Open Shortcuts app on iPhone**
+
+**2. Create new shortcut with these actions**:
+
+1. **Find Contacts** → All Contacts
+2. **Get Phone Numbers** from Contacts (get all numbers)
+3. **Text** → Set variable "allPhones"
+4. **Get Call History** → Last 90 days
+5. **Repeat** with each call:
+   - Get "Call Recipient" from call
+   - Get "Call Duration" from call
+   - Get "Call Date" from call
+   - Get "Call Direction" from call (incoming/outgoing)
+   - **Dictionary** with keys:
+     - contact: Call Recipient
+     - phone: Call Recipient Phone
+     - date: Call Date
+     - duration: Call Duration (seconds)
+     - direction: Call Direction
+   - Add to variable "callLogArray"
+6. **Get Dictionary Value** → callLogArray
+7. **Convert** to JSON
+8. **Save File** → iCloud Drive/JobHunt/call-log-YYYY-MM-DD.json
+
+**3. Name shortcut**: "Export Call Log to JobHunt"
+
+**4. Run shortcut**:
+- Open Shortcuts app
+- Tap "Export Call Log to JobHunt"
+- Wait for completion
+- Check iCloud Drive/JobHunt/ folder
+
+---
+
+## Part 3: Import to CRM
+
+### Add Import Buttons to Dashboard
+
+I'll add two import buttons to the Settings modal:
+
+**1. Import iMessages/SMS button**:
+- Opens file picker
+- Reads JSON from `export-messages.sh`
+- Matches contacts by phone number (normalize: remove +1, spaces, dashes)
+- Fallback match by contact name
+- Adds to messageHistory array
+- Updates lastContact date
+- Updates outreach array
+
+**2. Import Call Log button**:
+- Reads JSON from iOS Shortcut output
+- Matches contacts by phone number
+- Adds to outreach array with call duration
+- Updates lastContact date
+- Does NOT add to messageHistory (calls don't have message content)
+
+### Import Logic
+
+**Phone number normalization**:
+```javascript
+function normalizePhone(phone) {
+  if (!phone) return '';
+  // Remove country code, spaces, dashes, parentheses
+  return phone.replace(/[\+\s\-\(\)]/g, '').slice(-10);
+}
+```
+
+**Match contacts by phone**:
+```javascript
+function findContactByPhone(phone) {
+  const normalized = normalizePhone(phone);
+  return contacts.find(c =>
+    normalizePhone(c.phone) === normalized
+  );
+}
+```
+
+**Message import**:
 ```javascript
 async function importMessages() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'application/json';
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'application/json';
 
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        const text = await file.text();
-        const messages = JSON.parse(text);
+  fileInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    const text = await file.text();
+    const messages = JSON.parse(text);
 
-        messages.forEach(msg => {
-            // Match by phone number or name
-            const contact = findContactByPhone(msg.phone) || findContactByName(msg.contact);
+    let imported = 0;
+    let updated = 0;
 
-            if (contact) {
-                // Add to messageHistory
-                contact.messageHistory.push({
-                    id: `sms-${Date.now()}`,
-                    date: msg.date,
-                    type: 'sms-message',
-                    subject: 'Text Message',
-                    body: msg.message,
-                    sentVia: 'phone',
-                    aiGenerated: false,
-                    responded: msg.direction === 'incoming',
-                    responseDate: msg.direction === 'incoming' ? msg.date : null
-                });
+    messages.forEach(msg => {
+      // Try phone match first, then name
+      let contact = findContactByPhone(msg.phone);
+      if (!contact) {
+        contact = findContactByName(msg.contact);
+      }
 
-                // Update lastContact
-                if (new Date(msg.date) > new Date(contact.lastContact || 0)) {
-                    contact.lastContact = msg.date;
-                }
-            }
-        });
+      if (contact) {
+        // Initialize arrays
+        if (!contact.messageHistory) contact.messageHistory = [];
+        if (!contact.outreach) contact.outreach = [];
 
-        saveContacts(contacts);
-        updateAllDisplays();
-    };
+        // Check for duplicate
+        const exists = contact.messageHistory.some(m =>
+          m.date === msg.date && m.body === msg.message
+        );
 
-    fileInput.click();
-}
-```
-
-### Automation
-- Run `export-messages.sh` via cron job (daily)
-- Auto-upload to cloud storage (Dropbox, iCloud Drive)
-- CRM auto-imports from cloud storage
-
----
-
-## Option 2: Android SMS Sync via SMS Backup & Restore
-
-### How It Works
-Use popular app "SMS Backup & Restore" to export messages to XML/JSON format.
-
-### Pros
-- ✅ Easy to use (GUI app)
-- ✅ Exports to multiple formats (XML, JSON, CSV)
-- ✅ Includes call logs
-- ✅ Can schedule automatic backups
-
-### Cons
-- ❌ Requires third-party app
-- ❌ Manual import to CRM
-- ❌ No real-time sync
-
-### Implementation Steps
-
-**1. Install App**
-- Download "SMS Backup & Restore" from Google Play
-- Grant SMS/Call log permissions
-
-**2. Export Data**
-- Open app → "Backup"
-- Select "Messages + Call logs"
-- Choose JSON format
-- Export to Google Drive or Dropbox
-
-**3. Import to CRM**
-Same as Option 1 - add file upload button that parses JSON
-
----
-
-## Option 3: Twilio Phone Number (Best for Real-Time)
-
-### How It Works
-Get a Twilio phone number, use it for job search calls/texts, integrate via API.
-
-### Pros
-- ✅ Real-time sync via webhooks
-- ✅ Full API access
-- ✅ Can record calls
-- ✅ Professional appearance (dedicated number)
-- ✅ SMS + voice in one platform
-
-### Cons
-- ❌ Costs money (~$1/month + usage fees)
-- ❌ Requires giving contacts a different number
-- ❌ Not your personal phone
-
-### Implementation Steps
-
-**1. Setup Twilio Account**
-```bash
-# Sign up at twilio.com
-# Buy a phone number (~$1/month)
-# Get Account SID and Auth Token
-```
-
-**2. Configure Webhooks**
-
-In Twilio console:
-- Go to Phone Numbers → [Your Number] → Messaging
-- Webhook URL: `https://your-app.vercel.app/api/twilio-webhook`
-- Method: POST
-
-**3. Create Vercel Function**
-
-`api/twilio-webhook.js`:
-```javascript
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_KEY
-);
-
-export default async function handler(req, res) {
-    const { From, Body, Direction, MessageSid, DateCreated } = req.body;
-
-    // Find contact by phone number
-    const { data: contacts } = await supabase
-        .from('job_search_data')
-        .select('contacts')
-        .eq('id', 'main')
-        .single();
-
-    const contact = contacts.contacts.find(c =>
-        c.phone === From || c.phone === req.body.To
-    );
-
-    if (contact) {
-        // Add to messageHistory
-        contact.messageHistory = contact.messageHistory || [];
-        contact.messageHistory.push({
-            id: `sms-${MessageSid}`,
-            date: DateCreated,
+        if (!exists) {
+          // Add to messageHistory
+          contact.messageHistory.push({
+            id: `sms-${Date.now()}-${Math.random()}`,
+            date: msg.date,
             type: 'sms-message',
             subject: 'Text Message',
-            body: Body,
-            sentVia: 'twilio-phone',
+            body: msg.message,
+            sentVia: 'iphone',
             aiGenerated: false,
-            responded: Direction === 'inbound',
-            responseDate: Direction === 'inbound' ? DateCreated : null
-        });
+            responded: msg.direction === 'incoming',
+            responseDate: msg.direction === 'incoming' ? msg.date : null
+          });
 
-        // Update lastContact
-        contact.lastContact = DateCreated;
+          // Add to outreach
+          contact.outreach.push({
+            type: msg.direction === 'incoming' ? 'received-sms' : 'sent-sms',
+            date: msg.date,
+            notes: msg.message.substring(0, 100) + '...',
+            channel: 'sms'
+          });
 
-        // Save back to Supabase
-        await supabase
-            .from('job_search_data')
-            .update({ contacts: contacts.contacts })
-            .eq('id', 'main');
-    }
+          // Update lastContact
+          if (new Date(msg.date) > new Date(contact.lastContact || 0)) {
+            contact.lastContact = msg.date;
+          }
 
-    res.status(200).send('OK');
-}
-```
-
-**4. Cost Estimate**
-- Phone number: $1.00/month
-- Incoming SMS: $0.0075 per message
-- Outgoing SMS: $0.0075 per message
-- Voice calls: ~$0.01/minute
-
-**Example**: 100 texts/month = $1.75 total
-
----
-
-## Option 4: Google Voice Integration
-
-### How It Works
-Use Google Voice number, access via unofficial API or export.
-
-### Pros
-- ✅ Free (in US)
-- ✅ Separate business number
-- ✅ Web interface available
-
-### Cons
-- ❌ No official API
-- ❌ Against ToS to scrape
-- ❌ Export is manual (Google Takeout)
-
-### Implementation Steps
-
-**1. Export via Google Takeout**
-- Go to takeout.google.com
-- Select "Voice"
-- Export to JSON
-- Download archive
-
-**2. Import to CRM**
-Same JSON import process as Options 1-2
-
----
-
-## Option 5: Call Log Sync (iOS Shortcuts)
-
-### How It Works
-Use iOS Shortcuts to export call history periodically.
-
-### Pros
-- ✅ Native iOS feature
-- ✅ No third-party apps
-- ✅ Can automate
-
-### Cons
-- ❌ Limited to call duration/time (not conversation content)
-- ❌ Manual trigger needed
-
-### Implementation
-
-**1. Create iOS Shortcut**
-
-Shortcut steps:
-1. Get last 50 contacts from Contacts app
-2. Get phone call history (last 7 days)
-3. For each call:
-   - Match phone number to contact
-   - Create JSON object: { contact, phone, date, duration, direction }
-4. Convert list to JSON
-5. Upload to iCloud Drive or send to webhook
-
-**2. CRM Import**
-
-Add "Import Call Log" button:
-```javascript
-async function importCallLog() {
-    // Read from iCloud Drive file or webhook endpoint
-    const callLog = await fetch('/api/import-call-log').then(r => r.json());
-
-    callLog.forEach(call => {
-        const contact = findContactByPhone(call.phone);
-        if (contact) {
-            // Add to outreach array
-            contact.outreach.push({
-                type: 'phone-call',
-                date: call.date,
-                notes: `${call.direction} call - ${call.duration} seconds`,
-                channel: 'phone'
-            });
-
-            // Update lastContact
-            if (new Date(call.date) > new Date(contact.lastContact || 0)) {
-                contact.lastContact = call.date;
-            }
+          imported++;
         }
+        updated++;
+      }
     });
 
     saveContacts(contacts);
+    updateAllDisplays();
+
+    alert(`✓ SMS Import Complete\n${imported} new messages\n${updated} contacts updated`);
+  };
+
+  fileInput.click();
+}
+```
+
+**Call log import**:
+```javascript
+async function importCallLog() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'application/json';
+
+  fileInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    const text = await file.text();
+    const calls = JSON.parse(text);
+
+    let imported = 0;
+
+    calls.forEach(call => {
+      const contact = findContactByPhone(call.phone) || findContactByName(call.contact);
+
+      if (contact) {
+        if (!contact.outreach) contact.outreach = [];
+
+        // Check for duplicate
+        const exists = contact.outreach.some(o =>
+          o.date === call.date && o.type.includes('call')
+        );
+
+        if (!exists) {
+          // Add to outreach
+          const minutes = Math.floor(call.duration / 60);
+          const seconds = call.duration % 60;
+
+          contact.outreach.push({
+            type: call.direction === 'incoming' ? 'received-call' : 'placed-call',
+            date: call.date,
+            notes: `${call.direction} call - ${minutes}m ${seconds}s`,
+            channel: 'phone'
+          });
+
+          // Update lastContact
+          if (new Date(call.date) > new Date(contact.lastContact || 0)) {
+            contact.lastContact = call.date;
+          }
+
+          imported++;
+        }
+      }
+    });
+
+    saveContacts(contacts);
+    updateAllDisplays();
+
+    alert(`✓ Call Log Import Complete\n${imported} calls logged`);
+  };
+
+  fileInput.click();
 }
 ```
 
 ---
 
-## Recommended Approach
+## Part 4: Automation
 
-### For Immediate Implementation (Today)
+### Weekly iMessage Export (Mac)
 
-**1. iPhone Users (with Mac)**:
-- Use Option 1 (iMessage Export) + Option 5 (Call Log)
-- Export weekly, import manually
-- **Implementation time**: 2-3 hours
-- **Cost**: $0
+**1. Create LaunchAgent plist**
 
-**2. Android Users**:
-- Use Option 2 (SMS Backup & Restore)
-- Export weekly, import manually
-- **Implementation time**: 1 hour
-- **Cost**: $0
+Save as `~/Library/LaunchAgents/com.jobhunt.messages-export.plist`:
 
-### For Professional/Long-Term (Within 1 Month)
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.jobhunt.messages-export</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/lcalderon/export-messages.sh</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>0</integer>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</integer>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/tmp/messages-export.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/messages-export.error.log</string>
+</dict>
+</plist>
+```
 
-**Get Twilio Number** (Option 3):
-- Use dedicated number for job search
-- Real-time sync via webhooks
-- Professional appearance
-- **Implementation time**: 4-6 hours
-- **Cost**: ~$2-5/month
+**2. Load LaunchAgent**:
 
----
+```bash
+launchctl load ~/Library/LaunchAgents/com.jobhunt.messages-export.plist
+```
 
-## Implementation Priority
+**Now runs**: Every Sunday at 9:00 AM
 
-If you want this feature, here's the recommended order:
+### Weekly Call Log Export (iPhone)
 
-### Phase 1: Basic Import (This Week)
-1. Add phone number field to contact schema ✅ (already have)
-2. Add "Import Messages" button to Settings
-3. Support JSON file upload
-4. Match messages to contacts by phone/name
-5. Add to messageHistory array
-6. Test with sample export
+**1. In Shortcuts app**:
+- Open your "Export Call Log" shortcut
+- Tap "..." menu
+- Enable "Run as Automation"
 
-**Estimated time**: 3-4 hours
+**2. Create Personal Automation**:
+- Open Shortcuts → Automation tab
+- Tap "+" → Personal Automation
+- Choose "Time of Day"
+- Set to "Weekly" → Sunday 9:00 AM
+- Add action: "Run Shortcut" → "Export Call Log to JobHunt"
+- Disable "Ask Before Running"
 
-### Phase 2: Automated Export (Next Week)
-1. Create AppleScript for Mac OR Android export guide
-2. Setup automated export (cron job or scheduled shortcut)
-3. Auto-upload to cloud storage
-4. CRM checks cloud storage periodically
-
-**Estimated time**: 4-5 hours
-
-### Phase 3: Real-Time Sync (Future)
-1. Get Twilio account
-2. Create webhook endpoint
-3. Test SMS sync
-4. Test call logging
-5. Add voice recording storage (optional)
-
-**Estimated time**: 6-8 hours
-**Cost**: ~$2-5/month
-
----
-
-## Data Privacy Considerations
-
-**Important**: Be careful with sensitive data
-
-1. **iMessage Export**: Stores on your local machine only
-2. **Twilio**: Messages stored on Twilio servers (encrypted)
-3. **Supabase**: Ensure RLS (Row Level Security) is enabled
-4. **Never commit** phone numbers or messages to Git
-5. **Sanitize exports** before sharing with anyone
+**Now runs**: Every Sunday at 9:00 AM automatically
 
 ---
 
-## Next Steps
+## Part 5: Implementation Checklist
 
-**Would you like me to implement Phase 1?**
+### Phase 1: Manual Import (Today - 2 hours)
 
-I can add:
-1. "Import Messages" button to Settings modal
-2. JSON file upload handler
-3. Phone number matching logic
-4. Message parsing for common formats (iMessage JSON, SMS Backup XML)
-5. Sample export script for Mac users
+- [ ] Create `~/export-messages.sh` script on Mac
+- [ ] Run script to test (should create JSON file)
+- [ ] Create iOS Shortcut for call log export
+- [ ] Run shortcut to test (should save to iCloud Drive)
+- [ ] Add "Import SMS" button to dashboard Settings
+- [ ] Add "Import Call Log" button to dashboard Settings
+- [ ] Test SMS import with sample file
+- [ ] Test call log import with sample file
+- [ ] Verify contacts updated correctly
+- [ ] Verify UI shows new messages/calls
 
-**Estimated completion**: 3-4 hours
+### Phase 2: Automated Export (Next Week - 1 hour)
 
-Let me know which option interests you most!
+- [ ] Create LaunchAgent plist for weekly iMessage export
+- [ ] Load LaunchAgent and test
+- [ ] Enable iOS Shortcut automation for call log
+- [ ] Test automation runs on schedule
+- [ ] Verify exports appear in correct location
+
+### Phase 3: Polish (Optional - 1 hour)
+
+- [ ] Add import progress indicator
+- [ ] Add detailed import report (show duplicates skipped)
+- [ ] Add filter to exclude group chats (SMS import)
+- [ ] Add date range selector (last 30/60/90 days)
+- [ ] Add "Auto-import from iCloud Drive" feature
+- [ ] Add duplicate detection warnings
 
 ---
 
-**Related Questions**:
-- Do you primarily use iPhone or Android?
-- Do you have a Mac computer?
-- Would you be open to using a dedicated Twilio number?
-- How important is real-time sync vs. weekly manual imports?
+## Expected Results
+
+After implementation:
+
+**SMS/iMessage Import**:
+- Every text message becomes a messageHistory entry
+- Contact lastContact dates update automatically
+- Outreach array tracks sent vs received
+- See full conversation history in contact modal
+
+**Call Log Import**:
+- Every phone call becomes an outreach entry
+- Shows call direction (incoming/outgoing)
+- Shows call duration
+- Contact lastContact dates update
+- Analytics show "phone" as outreach channel
+
+**Example Contact Record**:
+
+```javascript
+{
+  name: "Sarah Chen",
+  phone: "+1-415-555-1234",
+  lastContact: "2024-12-10T14:30:00Z", // Updated from latest text
+
+  messageHistory: [
+    {
+      id: "sms-1702141234",
+      date: "2024-12-10T14:30:00Z",
+      type: "sms-message",
+      subject: "Text Message",
+      body: "Thanks for connecting! Let's chat next week.",
+      sentVia: "iphone",
+      aiGenerated: false,
+      responded: true,
+      responseDate: "2024-12-10T15:00:00Z"
+    },
+    // ... more messages
+  ],
+
+  outreach: [
+    {
+      type: "sent-sms",
+      date: "2024-12-10T14:30:00Z",
+      notes: "Thanks for connecting! Let's...",
+      channel: "sms"
+    },
+    {
+      type: "placed-call",
+      date: "2024-12-08T10:15:00Z",
+      notes: "outgoing call - 12m 34s",
+      channel: "phone"
+    },
+    // ... more outreach
+  ]
+}
+```
+
+---
+
+## Privacy & Security
+
+**✅ Safe**:
+- All processing happens locally on your Mac
+- No data sent to third-party servers
+- Messages database is read-only (never modified)
+- Exported JSON files stay in your Downloads folder
+- You control when imports happen
+
+**⚠️ Important**:
+- Never commit exported JSON files to Git (already in .gitignore)
+- Delete old exports after importing (keep last 2-3 for backup)
+- Exported files contain sensitive personal data
+- If sharing device, encrypt exports: `zip -e messages.zip messages.json`
+
+---
+
+## Troubleshooting
+
+### "Permission denied" error on Messages database
+
+**Solution**:
+```bash
+# Grant Terminal full disk access
+# System Settings → Privacy & Security → Full Disk Access
+# Add Terminal.app
+```
+
+### Messages database query returns empty
+
+**Fix**: Use AppleScript export method instead (Option B above)
+
+### iOS Shortcut can't access call history
+
+**Solution**:
+- Settings → Privacy & Security → Phone → Shortcuts → Enable
+- Re-run shortcut
+
+### Phone numbers not matching contacts
+
+**Check**:
+- Contact phone field format: "+1-415-555-1234" or "(415) 555-1234"
+- Script normalizes to last 10 digits
+- If international number (not +1), modify normalization logic
+
+### Duplicate messages on re-import
+
+**This is prevented** - the import logic checks for existing messages by date + body before adding.
+
+---
+
+## Future Enhancements
+
+**Possible additions**:
+
+1. **Auto-import from iCloud Drive**:
+   - Dashboard checks iCloud Drive folder every 5 minutes
+   - Auto-imports new export files
+   - Moves imported files to "processed" subfolder
+
+2. **Group chat filtering**:
+   - Detect group chats (multiple participants)
+   - Skip group messages (or create separate import)
+   - Only import 1-on-1 conversations
+
+3. **Message sentiment analysis**:
+   - Use AI to detect tone (positive/negative/neutral)
+   - Tag messages with sentiment
+   - Show sentiment trends in analytics
+
+4. **Call recording transcripts**:
+   - If using call recording app
+   - Import transcripts as message content
+   - Search call conversations like SMS
+
+5. **Contact photo sync**:
+   - Extract contact photos from macOS Contacts
+   - Display in CRM contact cards
+
+---
+
+## Summary
+
+**What you'll do**:
+1. Run `export-messages.sh` on Mac (gets all texts from last 90 days)
+2. Run iOS Shortcut on iPhone (gets call log from last 90 days)
+3. Upload JSON files via CRM Settings buttons
+4. See all contacts updated with messages, calls, lastContact dates
+
+**Time investment**:
+- Initial setup: 2 hours
+- Weekly maintenance: 2 minutes (upload 2 files)
+- With automation: 0 minutes (runs automatically)
+
+**Cost**: $0 (uses native Apple features)
+
+**Privacy**: 100% local processing, no cloud services
+
+---
+
+**Ready to implement?** I can add the import buttons to your dashboard now. Let me know!
