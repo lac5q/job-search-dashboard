@@ -2140,10 +2140,44 @@ Luis
 
                             if (convDate > existingDate) {
                                 existing.lastContact = conv.timestamp || conv.syncedAt;
-                                existing.notes = (existing.notes || '') +
-                                    `\n[LinkedIn ${new Date(conv.syncedAt).toLocaleDateString()}]: ${conv.lastMessage}`;
                                 existing.linkedInUrl = conv.url;
-                                contactsUpdated++;
+
+                                // Initialize arrays if they don't exist
+                                if (!existing.messageHistory) existing.messageHistory = [];
+                                if (!existing.outreach) existing.outreach = [];
+
+                                // Check if this message is already in messageHistory (prevent duplicates)
+                                const messageExists = existing.messageHistory.some(m =>
+                                    m.date === (conv.timestamp || conv.syncedAt) &&
+                                    m.body && m.body.includes(conv.lastMessage)
+                                );
+
+                                if (!messageExists) {
+                                    // Add to messageHistory array (for new Phase 3 timeline)
+                                    const messageEntry = {
+                                        id: `linkedin-${conv.id || Date.now()}`,
+                                        date: conv.timestamp || conv.syncedAt,
+                                        type: 'linkedin-message',
+                                        subject: 'LinkedIn Message',
+                                        body: conv.lastMessage || '',
+                                        sentVia: 'linkedin',
+                                        aiGenerated: false,
+                                        responded: false, // Will be manually updated if they reply
+                                        responseDate: null
+                                    };
+                                    existing.messageHistory.push(messageEntry);
+
+                                    // Also add to outreach array (for tracking)
+                                    const outreachEntry = {
+                                        type: 'linkedin',
+                                        date: conv.timestamp || conv.syncedAt,
+                                        notes: conv.lastMessage || '',
+                                        channel: 'linkedin-messaging'
+                                    };
+                                    existing.outreach.push(outreachEntry);
+
+                                    contactsUpdated++;
+                                }
                             }
                         } else {
                             // Create new contact from LinkedIn conversation
@@ -2160,10 +2194,22 @@ Luis
                                 addedDate: conv.timestamp || conv.syncedAt,
                                 lastContact: conv.timestamp || conv.syncedAt,
                                 notes: `LinkedIn conversation:\n${conv.lastMessage || ''}`,
+                                messageHistory: [{
+                                    id: `linkedin-${conv.id || Date.now()}`,
+                                    date: conv.timestamp || conv.syncedAt,
+                                    type: 'linkedin-message',
+                                    subject: 'LinkedIn Message',
+                                    body: conv.lastMessage || '',
+                                    sentVia: 'linkedin',
+                                    aiGenerated: false,
+                                    responded: false,
+                                    responseDate: null
+                                }],
                                 outreach: [{
                                     type: 'linkedin',
                                     date: conv.timestamp || conv.syncedAt,
-                                    notes: conv.lastMessage || ''
+                                    notes: conv.lastMessage || '',
+                                    channel: 'linkedin-messaging'
                                 }]
                             };
 
@@ -2185,9 +2231,17 @@ Luis
                             console.log(`Removed ${dedupeResult.removed} duplicates after LinkedIn import`);
                         }
 
+                        // Refresh all UI displays
+                        if (typeof updateAllDisplays === 'function') {
+                            updateAllDisplays();
+                        }
+                        if (typeof renderAnalytics === 'function') {
+                            renderAnalytics(); // Refresh analytics to show new messages
+                        }
+
                         // Show notification
-                        if (newContactsAdded > 0) {
-                            this.showLinkedInNotification(newContactsAdded);
+                        if (newContactsAdded > 0 || contactsUpdated > 0) {
+                            this.showLinkedInNotification(newContactsAdded, contactsUpdated);
                         }
                     }
                 } catch (error) {
@@ -2195,7 +2249,7 @@ Luis
                 }
             },
 
-            showLinkedInNotification(count) {
+            showLinkedInNotification(newCount, updatedCount) {
                 const notification = document.createElement('div');
                 notification.style.cssText = `
                     position: fixed;
@@ -2211,7 +2265,12 @@ Luis
                     font-size: 14px;
                     animation: slideIn 0.3s ease;
                 `;
-                notification.innerHTML = `<strong>✓ LinkedIn Sync</strong><br>${count} new contact${count > 1 ? 's' : ''} imported`;
+
+                // Build message based on counts
+                const parts = [];
+                if (newCount > 0) parts.push(`${newCount} new`);
+                if (updatedCount > 0) parts.push(`${updatedCount} updated`);
+                notification.innerHTML = `<strong>✓ LinkedIn Sync</strong><br>${parts.join(', ')} contact${(newCount + updatedCount) > 1 ? 's' : ''}`;
 
                 document.body.appendChild(notification);
 
